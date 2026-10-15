@@ -57,53 +57,6 @@
 }
 
 /* ── Location pins ────────────────────────────────────────── */
-.hero__pins {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.hero__pin {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.hero__pin-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--gold-primary);
-  box-shadow: 0 0 8px rgba(212,175,55,0.6);
-}
-
-.hero__pin-pulse {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(212,175,55,0.3);
-  animation: pin-pulse 2s ease-out infinite;
-}
-
-@keyframes pin-pulse {
-  0%   { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(3.5); opacity: 0; }
-}
-
-.hero__pin-label {
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--gold-light);
-  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
-  white-space: nowrap;
-  margin-top: 8px;
-}
 
 /* ── Content ──────────────────────────────────────────────── */
 .hero__content {

@@ -14,6 +14,7 @@ const Login           = lazy(() => import('./pages/Login'))
 const Register        = lazy(() => import('./pages/Register'))
 const Dashboard       = lazy(() => import('./pages/Dashboard'))
 const AdminDashboard  = lazy(() => import('./pages/AdminDashboard'))
+const ListLand        = lazy(() => import('./pages/ListLand'))
 const NotFound        = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/explore"          element={<ExploreLand />} />
             <Route path="/property/:id"     element={<PropertyDetail />} />
             <Route path="/partner"          element={<PartnerWithUs />} />
+            <Route path="/list-land"        element={<ListLand />} />
             <Route path="/community"        element={<Community />} />
             <Route path="/login"            element={<Login />} />
             <Route path="/register"         element={<Register />} />

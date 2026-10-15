@@ -53,14 +53,13 @@ export default function Login() {
       <div className="auth-card">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <div className="auth-card__logo">
-            <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
-              <rect x="8" y="4" width="5" height="24" fill="#D4AF37"/>
-              <path d="M8 4h14a7 7 0 0 1 0 14H8" stroke="#D4AF37" strokeWidth="5" fill="none" strokeLinejoin="round"/>
-              <rect x="27" y="4" width="5" height="24" fill="#D4AF37"/>
-              <path d="M8 31L20 20L32 31" stroke="#D4AF37" strokeWidth="2.5" fill="none"/>
-              <rect x="18" y="31" width="4" height="5" fill="#D4AF37"/>
-            </svg>
-            <span className="auth-card__brand">PLOTTAGE HUB</span>
+            <Link to="/" aria-label="Plottage Hub Home">
+              <img
+                src="/assets/plottage-hub-logo.png"
+                alt="Plottage Hub"
+                className="auth-card__logo-img"
+              />
+            </Link>
           </div>
 
           <h1 className="auth-card__title">Welcome Back</h1>

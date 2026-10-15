@@ -1,142 +1,525 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Search, MapPin, Ruler, IndianRupee, Eye, MessageSquare, SlidersHorizontal } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  Search, MapPin, Ruler, IndianRupee, Eye, MessageSquare, 
+  SlidersHorizontal, Heart, CheckCircle2, RotateCcw, Sparkles 
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import './ExploreLand.css'
 
 const DEMO_PROPERTIES = [
-  { id: 'd1', title: 'Agricultural Land — Karjat', location: 'Karjat, Raigad', type: 'Agricultural', area: '5', unit: 'Acres', price: '₹45–55L', image: '/assets/property-agri.jpg', infra: ['Road access', 'River frontage'] },
-  { id: 'd2', title: 'Residential Plot — Lonavala', location: 'Lonavala, Pune', type: 'Residential', area: '2,400', unit: 'Sq.ft', price: '₹18–24L', image: '/assets/property-residential.jpg', infra: ['Internal roads', 'Electricity'] },
-  { id: 'd3', title: 'Coastal Land — Alibaug', location: 'Alibaug, Raigad', type: 'Farmhouse', area: '15', unit: 'Guntha', price: '₹35–50L', image: '/assets/alibaug.jpg', infra: ['Coastal road', 'Sea view'] },
-  { id: 'd4', title: 'Agricultural Land — Karjat Hills', location: 'Karjat, Raigad', type: 'Agricultural', area: '8', unit: 'Acres', price: '₹60–75L', image: '/assets/karjat.jpg', infra: ['Highway access', 'Water source'] },
-  { id: 'd5', title: 'Investment Plot — Panvel Corridor', location: 'Panvel, Raigad', type: 'Investment', area: '1,200', unit: 'Sq.ft', price: '₹12–16L', image: '/assets/panvel.jpg', infra: ['Metro vicinity', 'Clear title'] },
-  { id: 'd6', title: 'Farmhouse Land — Lonavala View', location: 'Lonavala, Pune', type: 'Farmhouse', area: '20', unit: 'Guntha', price: '₹80–1.2Cr', image: '/assets/lonavala.jpg', infra: ['Valley view', 'Road access'] },
+  {
+    id: 'd1',
+    title: 'Agricultural Land — Karjat Riverside',
+    location: 'Karjat, Raigad',
+    type: 'Agricultural',
+    area: '5',
+    unit: 'Acres',
+    acreEquivalent: 5.0,
+    price: '₹45–55 Lakh',
+    minPriceLakh: 45,
+    maxPriceLakh: 55,
+    image: '/assets/property-agri.jpg',
+    infra: ['Tar Road Access', 'River Frontage', 'Electricity'],
+    description: 'Scenic fertile agricultural land along the riverbank in Karjat. Ideal for organic farming, wellness retreat, or private estate.'
+  },
+  {
+    id: 'd2',
+    title: 'Residential Plot — Lonavala Foothills',
+    location: 'Lonavala, Pune',
+    type: 'Residential',
+    area: '2,400',
+    unit: 'Sq.ft',
+    acreEquivalent: 0.055,
+    price: '₹18–24 Lakh',
+    minPriceLakh: 18,
+    maxPriceLakh: 24,
+    image: '/assets/property-residential.jpg',
+    infra: ['Internal Roads', 'Sanctioned NA', 'Underground Power'],
+    description: 'Exclusive residential plot in a gated sanctuary overlooking the misty hills of Lonavala with ready Collector NA sanction.'
+  },
+  {
+    id: 'd3',
+    title: 'Coastal Farmhouse Land — Alibaug',
+    location: 'Alibaug, Raigad',
+    type: 'Farmhouse',
+    area: '15',
+    unit: 'Guntha',
+    acreEquivalent: 0.375,
+    price: '₹35–50 Lakh',
+    minPriceLakh: 35,
+    maxPriceLakh: 50,
+    image: '/assets/alibaug.jpg',
+    infra: ['Coastal Highway', 'Sweet Water Well', 'Fenced Boundary'],
+    description: 'Serene coastal paradise located 20 minutes from Mandwa Jetty in Alibaug. Surrounded by lush flora and cool sea breezes.'
+  },
+  {
+    id: 'd4',
+    title: 'Agricultural Land — Karjat Hills',
+    location: 'Karjat, Raigad',
+    type: 'Agricultural',
+    area: '8',
+    unit: 'Acres',
+    acreEquivalent: 8.0,
+    price: '₹60–75 Lakh',
+    minPriceLakh: 60,
+    maxPriceLakh: 75,
+    image: '/assets/karjat.jpg',
+    infra: ['Highway Access', 'Water Source', 'Single 7/12 Title'],
+    description: 'Expansive hillside agricultural parcel capturing panoramic Sahyadri views, ideal for private farmhouses or horticulture.'
+  },
+  {
+    id: 'd5',
+    title: 'Investment Plot — Panvel Growth Corridor',
+    location: 'Panvel, Raigad',
+    type: 'Investment',
+    area: '1,200',
+    unit: 'Sq.ft',
+    acreEquivalent: 0.027,
+    price: '₹12–16 Lakh',
+    minPriceLakh: 12,
+    maxPriceLakh: 16,
+    image: '/assets/panvel.jpg',
+    infra: ['Metro Vicinity', 'Clear Title', 'High Appreciation'],
+    description: 'High-growth potential land parcel located in the vicinity of the Navi Mumbai International Airport economic hub.'
+  },
+  {
+    id: 'd6',
+    title: 'Farmhouse Estate — Lonavala Valley',
+    location: 'Lonavala, Pune',
+    type: 'Farmhouse',
+    area: '20',
+    unit: 'Guntha',
+    acreEquivalent: 0.5,
+    price: '₹80 Lakh–1.2 Cr',
+    minPriceLakh: 80,
+    maxPriceLakh: 120,
+    image: '/assets/lonavala.jpg',
+    infra: ['Valley View', 'Private Road', 'Hilltop Plateau'],
+    description: 'Premium table-land parcel capturing mist-filled cliff vistas in prime Lonavala, ready for bespoke architectural estate development.'
+  },
 ]
 
 const types = ['All', 'Agricultural', 'Residential', 'Commercial', 'Investment', 'Farmhouse', 'Development']
-const locationOpts = ['All', 'Lonavala', 'Karjat', 'Alibaug', 'Panvel', 'Khopoli', 'Pali']
+const locationOpts = ['All Locations', 'Karjat', 'Lonavala', 'Alibaug', 'Panvel', 'Khopoli', 'Pali']
+const budgetOpts = [
+  { value: 'all', label: 'All Budgets' },
+  { value: 'under-25', label: 'Under ₹25 Lakh' },
+  { value: '25-50', label: '₹25L – ₹50 Lakh' },
+  { value: '50-100', label: '₹50L – ₹1 Crore' },
+  { value: 'above-100', label: 'Above ₹1 Crore' },
+]
+const areaOpts = [
+  { value: 'all', label: 'All Land Sizes' },
+  { value: 'under-2', label: 'Under 2 Acres (< 80 Guntha)' },
+  { value: '2-5', label: '2 – 5 Acres' },
+  { value: '5-10', label: '5 – 10 Acres' },
+  { value: 'above-10', label: '10+ Acres' },
+]
 const sortOpts = [
   { value: 'newest', label: 'Newest First' },
   { value: 'price-asc', label: 'Price: Low to High' },
   { value: 'price-desc', label: 'Price: High to Low' },
   { value: 'area-asc', label: 'Area: Small to Large' },
+  { value: 'area-desc', label: 'Area: Large to Small' },
 ]
 
 export default function ExploreLand() {
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState('All')
-  const [selectedLocation, setSelectedLocation] = useState('All')
+  const [selectedLocation, setSelectedLocation] = useState('All Locations')
+  const [selectedBudget, setSelectedBudget] = useState('all')
+  const [selectedArea, setSelectedArea] = useState('all')
   const [sort, setSort] = useState('newest')
   const [showFilters, setShowFilters] = useState(false)
-
-  const filtered = DEMO_PROPERTIES.filter(p => {
-    const matchSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.location.toLowerCase().includes(search.toLowerCase())
-    const matchType = selectedType === 'All' || p.type === selectedType
-    const matchLoc = selectedLocation === 'All' || p.location.includes(selectedLocation)
-    return matchSearch && matchType && matchLoc
+  
+  // Local bookmarks state
+  const [savedIds, setSavedIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('ph_saved_props') || '[]')
+    } catch {
+      return []
+    }
   })
+
+  const toggleSave = (prop) => {
+    setSavedIds(prev => {
+      let updated
+      if (prev.includes(prop.id)) {
+        updated = prev.filter(id => id !== prop.id)
+        toast('Removed from saved parcels', { icon: '🤍' })
+      } else {
+        updated = [...prev, prop.id]
+        toast.success(`Saved "${prop.title}" to shortlist!`)
+      }
+      try {
+        localStorage.setItem('ph_saved_props', JSON.stringify(updated))
+      } catch {
+        // ignore
+      }
+      return updated
+    })
+  }
+
+  const handleResetFilters = () => {
+    setSearch('')
+    setSelectedType('All')
+    setSelectedLocation('All Locations')
+    setSelectedBudget('all')
+    setSelectedArea('all')
+    setSort('newest')
+  }
+
+  // Active filter count
+  const activeFiltersCount = (search ? 1 : 0) + 
+    (selectedType !== 'All' ? 1 : 0) + 
+    (selectedLocation !== 'All Locations' ? 1 : 0) + 
+    (selectedBudget !== 'all' ? 1 : 0) + 
+    (selectedArea !== 'all' ? 1 : 0)
+
+  // Filtering logic
+  const filtered = useMemo(() => {
+    return DEMO_PROPERTIES.filter(p => {
+      // Search term
+      if (search.trim()) {
+        const q = search.toLowerCase()
+        const matchesTitle = p.title.toLowerCase().includes(q)
+        const matchesLoc = p.location.toLowerCase().includes(q)
+        const matchesType = p.type.toLowerCase().includes(q)
+        const matchesDesc = p.description.toLowerCase().includes(q)
+        if (!matchesTitle && !matchesLoc && !matchesType && !matchesDesc) return false
+      }
+
+      // Property type
+      if (selectedType !== 'All' && p.type !== selectedType) {
+        return false
+      }
+
+      // Location
+      if (selectedLocation !== 'All Locations' && !p.location.includes(selectedLocation)) {
+        return false
+      }
+
+      // Budget
+      if (selectedBudget === 'under-25' && p.minPriceLakh > 25) return false
+      if (selectedBudget === '25-50' && (p.maxPriceLakh < 25 || p.minPriceLakh > 50)) return false
+      if (selectedBudget === '50-100' && (p.maxPriceLakh < 50 || p.minPriceLakh > 100)) return false
+      if (selectedBudget === 'above-100' && p.maxPriceLakh < 100) return false
+
+      // Area (in acres equivalent)
+      if (selectedArea === 'under-2' && p.acreEquivalent >= 2) return false
+      if (selectedArea === '2-5' && (p.acreEquivalent < 2 || p.acreEquivalent > 5)) return false
+      if (selectedArea === '5-10' && (p.acreEquivalent < 5 || p.acreEquivalent > 10)) return false
+      if (selectedArea === 'above-10' && p.acreEquivalent < 10) return false
+
+      return true
+    }).sort((a, b) => {
+      if (sort === 'price-asc') return a.minPriceLakh - b.minPriceLakh
+      if (sort === 'price-desc') return b.maxPriceLakh - a.maxPriceLakh
+      if (sort === 'area-asc') return a.acreEquivalent - b.acreEquivalent
+      if (sort === 'area-desc') return b.acreEquivalent - a.acreEquivalent
+      return 0 // newest default
+    })
+  }, [search, selectedType, selectedLocation, selectedBudget, selectedArea, sort])
 
   return (
     <div className="explore">
-      {/* ── Hero ─────────────────────── */}
+      {/* ── Page Hero ───────────────────────────────────── */}
       <div className="explore__hero">
+        <div className="explore__hero-backdrop" />
         <div className="container explore__hero-content">
-          <motion.h1 className="explore__title" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+          <motion.div 
+            className="explore__eyebrow"
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.6 }}
+          >
+            <Sparkles size={14} className="explore__eyebrow-icon" />
+            DISCOVER YOUR NEXT OPPORTUNITY
+          </motion.div>
+
+          <motion.h1 
+            className="explore__title" 
+            initial={{ opacity: 0, y: 22 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.7, delay: 0.1 }}
+          >
             EXPLORE LAND
           </motion.h1>
-          <motion.p className="explore__subtitle" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}>
-            Discover land opportunities across Maharashtra's most sought-after locations.
+
+          <motion.p 
+            className="explore__subtitle" 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.7, delay: 0.15 }}
+          >
+            Curated land parcels, verified documentation, and high-yield opportunities across Maharashtra's premier investment corridors.
           </motion.p>
-          {/* Search bar */}
-          <motion.div className="explore__search-wrap" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
+
+          {/* Search Bar */}
+          <motion.div 
+            className="explore__search-wrap" 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.6, delay: 0.25 }}
+          >
             <Search size={18} className="explore__search-icon" />
             <input
               type="search"
               className="explore__search-input"
-              placeholder="Search by location, property type..."
+              placeholder="Search by location, district, plot type, or features..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               aria-label="Search properties"
             />
-            <button className="explore__filter-btn" onClick={() => setShowFilters(v => !v)} aria-label="Toggle filters">
-              <SlidersHorizontal size={16} /> Filters
+            {search && (
+              <button 
+                className="explore__search-clear" 
+                onClick={() => setSearch('')}
+                aria-label="Clear search text"
+              >
+                ✕
+              </button>
+            )}
+            <button 
+              className={`explore__filter-btn ${activeFiltersCount > 0 ? 'explore__filter-btn--active' : ''}`} 
+              onClick={() => setShowFilters(v => !v)} 
+              aria-label="Toggle search filters"
+            >
+              <SlidersHorizontal size={15} />
+              <span>Filters</span>
+              {activeFiltersCount > 0 && (
+                <span className="explore__filter-badge">{activeFiltersCount}</span>
+              )}
             </button>
           </motion.div>
         </div>
       </div>
 
+      {/* ── Main Body ───────────────────────────────────── */}
       <div className="container explore__body">
-        {/* Filters row */}
+        {/* Filters Panel */}
         <div className={`explore__filters ${showFilters ? 'explore__filters--open' : ''}`}>
-          <div className="explore__filter-group">
+          {/* Property Type Pills */}
+          <div className="explore__filter-group explore__filter-group--types">
             <label className="explore__filter-label">Property Type</label>
             <div className="explore__filter-pills">
               {types.map(t => (
-                <button key={t} className={`explore__pill ${selectedType === t ? 'explore__pill--active' : ''}`}
-                  onClick={() => setSelectedType(t)}>{t}</button>
+                <button 
+                  key={t} 
+                  className={`explore__pill ${selectedType === t ? 'explore__pill--active' : ''}`}
+                  onClick={() => setSelectedType(t)}
+                >
+                  {t}
+                </button>
               ))}
             </div>
           </div>
-          <div className="explore__filter-group">
-            <label className="explore__filter-label">Location</label>
-            <select className="form-select" style={{ width: 'auto', minWidth: 160 }} value={selectedLocation} onChange={e => setSelectedLocation(e.target.value)}>
-              {locationOpts.map(l => <option key={l} value={l}>{l}</option>)}
-            </select>
-          </div>
-          <div className="explore__filter-group" style={{ marginLeft: 'auto' }}>
-            <label className="explore__filter-label">Sort By</label>
-            <select className="form-select" style={{ width: 'auto', minWidth: 180 }} value={sort} onChange={e => setSort(e.target.value)}>
-              {sortOpts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
+
+          <div className="explore__filter-row">
+            {/* Location */}
+            <div className="explore__filter-group">
+              <label className="explore__filter-label" htmlFor="filter-loc">Location</label>
+              <select 
+                id="filter-loc"
+                className="form-select explore__select" 
+                value={selectedLocation} 
+                onChange={e => setSelectedLocation(e.target.value)}
+              >
+                {locationOpts.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+
+            {/* Budget */}
+            <div className="explore__filter-group">
+              <label className="explore__filter-label" htmlFor="filter-budget">Budget Range</label>
+              <select 
+                id="filter-budget"
+                className="form-select explore__select" 
+                value={selectedBudget} 
+                onChange={e => setSelectedBudget(e.target.value)}
+              >
+                {budgetOpts.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+              </select>
+            </div>
+
+            {/* Land Area */}
+            <div className="explore__filter-group">
+              <label className="explore__filter-label" htmlFor="filter-area">Land Area</label>
+              <select 
+                id="filter-area"
+                className="form-select explore__select" 
+                value={selectedArea} 
+                onChange={e => setSelectedArea(e.target.value)}
+              >
+                {areaOpts.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+              </select>
+            </div>
+
+            {/* Sort */}
+            <div className="explore__filter-group">
+              <label className="explore__filter-label" htmlFor="filter-sort">Sort By</label>
+              <select 
+                id="filter-sort"
+                className="form-select explore__select" 
+                value={sort} 
+                onChange={e => setSort(e.target.value)}
+              >
+                {sortOpts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+
+            {/* Reset button */}
+            {activeFiltersCount > 0 && (
+              <div className="explore__filter-group explore__filter-group--reset">
+                <button 
+                  className="btn btn-outline explore__reset-btn"
+                  onClick={handleResetFilters}
+                >
+                  <RotateCcw size={13} /> Reset
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Demo notice */}
-        <p className="explore__demo-note">⚠ Demonstration data — not verified live inventory</p>
+        {/* Status notice */}
+        <div className="explore__notice-banner">
+          <div className="explore__notice-left">
+            <span className="badge badge-gold">Verified Pipeline Preview</span>
+            <span className="explore__notice-text">
+              Displaying demonstration parcels illustrating platform discovery, legal vetting, and spatial intelligence.
+            </span>
+          </div>
+          <Link to="/list-land" className="explore__notice-link">
+            Have land in Maharashtra? List with us →
+          </Link>
+        </div>
 
-        {/* Results */}
+        {/* Results Bar */}
         <div className="explore__results-header">
-          <span className="explore__results-count">{filtered.length} properties found</span>
+          <span className="explore__results-count">
+            <strong>{filtered.length}</strong> {filtered.length === 1 ? 'property' : 'properties'} found
+          </span>
+          {activeFiltersCount > 0 && (
+            <span className="explore__active-indicator">
+              Filtered by: {selectedType !== 'All' ? selectedType : ''} {selectedLocation !== 'All Locations' ? `• ${selectedLocation}` : ''}
+            </span>
+          )}
         </div>
 
+        {/* Grid or Empty */}
         {filtered.length === 0 ? (
           <div className="explore__empty">
-            <p>No properties match your filters. Try adjusting your search.</p>
-            <button className="btn btn-outline" onClick={() => { setSearch(''); setSelectedType('All'); setSelectedLocation('All'); }}>Clear Filters</button>
+            <div className="explore__empty-icon">
+              <Search size={32} />
+            </div>
+            <h3>No matching parcels found</h3>
+            <p>None of the properties match your current search and filter criteria. Try broadening your budget or location selection.</p>
+            <button className="btn btn-gold" onClick={handleResetFilters}>
+              <RotateCcw size={14} /> Clear All Filters
+            </button>
           </div>
         ) : (
           <div className="explore__grid">
-            {filtered.map((prop, i) => (
-              <motion.div key={prop.id} className="prop-card"
-                initial={{ opacity: 0, y: 32 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.07, duration: 0.5 }}
-              >
-                <div className="prop-card__image-wrap">
-                  <img src={prop.image} alt={prop.title} className="prop-card__image" loading="lazy" />
-                  <div className="prop-card__image-overlay" />
-                  <div className="prop-card__badges">
-                    <span className="badge badge-gold">{prop.type}</span>
-                    <span className="badge" style={{ background: 'rgba(192,57,43,0.18)', color: '#C0392B', border: '1px solid rgba(192,57,43,0.25)', fontSize: '9px' }}>DEMO</span>
-                  </div>
-                </div>
-                <div className="prop-card__body">
-                  <h3 className="prop-card__title">{prop.title}</h3>
-                  <div className="prop-card__location"><MapPin size={12} /><span>{prop.location}</span></div>
-                  <div className="prop-card__meta">
-                    <div className="prop-card__meta-item"><Ruler size={13} /><span>{prop.area} {prop.unit}</span></div>
-                    <div className="prop-card__price"><IndianRupee size={13} /><span>{prop.price}</span></div>
-                  </div>
-                  <div className="prop-card__infra">
-                    {prop.infra.map(inf => <span key={inf} className="prop-card__infra-tag">{inf}</span>)}
-                  </div>
-                  <div className="prop-card__actions">
-                    <Link to={`/property/${prop.id}`} className="btn btn-gold prop-card__view"><Eye size={14} /> View</Link>
-                    <Link to={`/property/${prop.id}#enquire`} className="btn btn-outline prop-card__enquire"><MessageSquare size={14} /> Enquire</Link>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+            <AnimatePresence>
+              {filtered.map((prop, i) => {
+                const isSaved = savedIds.includes(prop.id)
+                return (
+                  <motion.div 
+                    key={prop.id} 
+                    className="prop-card"
+                    layout
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: i * 0.05, duration: 0.4 }}
+                  >
+                    {/* Image wrap */}
+                    <div className="prop-card__image-wrap">
+                      <img 
+                        src={prop.image} 
+                        alt={prop.title} 
+                        className="prop-card__image" 
+                        loading="lazy" 
+                      />
+                      <div className="prop-card__image-overlay" />
+                      
+                      {/* Badges */}
+                      <div className="prop-card__badges">
+                        <span className="badge badge-gold">{prop.type}</span>
+                        <span className="badge prop-card__demo-badge">Curated Demo Parcel</span>
+                      </div>
+
+                      {/* Bookmark Button */}
+                      <button 
+                        className={`prop-card__save-btn ${isSaved ? 'prop-card__save-btn--active' : ''}`}
+                        onClick={() => toggleSave(prop)}
+                        aria-label={isSaved ? 'Remove from saved' : 'Save property'}
+                        title={isSaved ? 'Remove from saved' : 'Save property'}
+                      >
+                        <Heart size={16} fill={isSaved ? 'var(--gold-primary)' : 'none'} />
+                      </button>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="prop-card__body">
+                      <div className="prop-card__location">
+                        <MapPin size={13} className="prop-card__loc-icon" />
+                        <span>{prop.location}</span>
+                      </div>
+
+                      <h2 className="prop-card__title">
+                        <Link to={`/property/${prop.id}`}>{prop.title}</Link>
+                      </h2>
+
+                      <p className="prop-card__description">
+                        {prop.description}
+                      </p>
+
+                      {/* Specs Row */}
+                      <div className="prop-card__meta">
+                        <div className="prop-card__meta-item">
+                          <Ruler size={14} />
+                          <span>{prop.area} {prop.unit}</span>
+                        </div>
+                        <div className="prop-card__price">
+                          <IndianRupee size={14} />
+                          <span>{prop.price}</span>
+                        </div>
+                      </div>
+
+                      {/* Infrastructure Tags */}
+                      <div className="prop-card__infra">
+                        {prop.infra.map(inf => (
+                          <span key={inf} className="prop-card__infra-tag">
+                            <CheckCircle2 size={11} className="prop-card__infra-icon" />
+                            {inf}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="prop-card__actions">
+                        <Link 
+                          to={`/property/${prop.id}`} 
+                          className="btn btn-gold prop-card__view"
+                        >
+                          <Eye size={14} /> View Details
+                        </Link>
+                        <Link 
+                          to={`/property/${prop.id}#enquire`} 
+                          className="btn btn-outline prop-card__enquire"
+                        >
+                          <MessageSquare size={14} /> Enquire Now
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </AnimatePresence>
           </div>
         )}
       </div>

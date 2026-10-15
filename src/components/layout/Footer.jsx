@@ -12,7 +12,7 @@ const footerLinks = {
     { label: 'Farmhouse Land',     to: '/explore?type=farmhouse' },
   ],
   Partnership: [
-    { label: 'List Your Land',         to: '/partner?role=landowner' },
+    { label: 'List Your Land',           to: '/list-land' },
     { label: 'Broker / Channel Partner', to: '/partner?role=broker' },
     { label: 'Developer',              to: '/partner?role=developer' },
     { label: 'Investor',               to: '/partner?role=investor' },
@@ -41,19 +41,12 @@ export default function Footer() {
           <div className="footer__grid">
             {/* Brand column */}
             <div className="footer__brand">
-              <Link to="/" className="footer__logo">
-                <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-                  <rect x="8" y="4" width="5" height="24" fill="#D4AF37"/>
-                  <path d="M8 4h14a7 7 0 0 1 0 14H8" stroke="#D4AF37" strokeWidth="5" fill="none" strokeLinejoin="round"/>
-                  <rect x="27" y="4" width="5" height="24" fill="#D4AF37"/>
-                  <path d="M13 20L27 4" stroke="#D4AF37" strokeWidth="2.5"/>
-                  <path d="M8 31L20 20L32 31" stroke="#D4AF37" strokeWidth="2.5" fill="none"/>
-                  <rect x="18" y="31" width="4" height="5" fill="#D4AF37"/>
-                </svg>
-                <div>
-                  <div className="footer__logo-name">PLOTTAGE HUB</div>
-                  <div className="footer__logo-tagline">FIND. INVEST. GROW.</div>
-                </div>
+              <Link to="/" className="footer__logo" aria-label="Plottage Hub Home">
+                <img
+                  src="/assets/plottage-hub-logo.png"
+                  alt="Plottage Hub — Discover Land. Unlock Possibilities."
+                  className="footer__logo-img"
+                />
               </Link>
 
               <p className="footer__brand-desc">

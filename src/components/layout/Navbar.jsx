@@ -47,20 +47,11 @@ export default function Navbar() {
         <div className="navbar__inner">
           {/* Logo */}
           <Link to="/" className="navbar__logo" aria-label="Plottage Hub Home">
-            <div className="navbar__logo-icon">
-              <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="8" y="4" width="5" height="24" fill="#D4AF37"/>
-                <path d="M8 4h14a7 7 0 0 1 0 14H8" stroke="#D4AF37" strokeWidth="5" fill="none" strokeLinejoin="round"/>
-                <rect x="27" y="4" width="5" height="24" fill="#D4AF37"/>
-                <path d="M13 20L27 4" stroke="#D4AF37" strokeWidth="2.5"/>
-                <path d="M8 31L20 20L32 31" stroke="#D4AF37" strokeWidth="2.5" fill="none"/>
-                <rect x="18" y="31" width="4" height="5" fill="#D4AF37"/>
-              </svg>
-            </div>
-            <div className="navbar__logo-text">
-              <span className="navbar__logo-name">PLOTTAGE HUB</span>
-              <span className="navbar__logo-tagline">DISCOVER LAND. UNLOCK POSSIBILITIES.</span>
-            </div>
+            <img
+              src="/assets/plottage-hub-logo.png"
+              alt="Plottage Hub — Discover Land. Unlock Possibilities."
+              className="navbar__logo-img"
+            />
           </Link>
 
           {/* Desktop nav */}
@@ -118,7 +109,7 @@ export default function Navbar() {
               <Link to="/login" className="btn btn-ghost navbar__login">Login</Link>
             )}
 
-            <Link to="/partner" className="btn btn-gold navbar__cta">
+            <Link to="/list-land" className="btn btn-gold navbar__cta">
               List Your Land
             </Link>
           </div>
@@ -155,17 +146,11 @@ export default function Navbar() {
             >
               <div className="navbar__mobile-header">
                 <Link to="/" className="navbar__logo" onClick={() => dispatch(setMobileMenuOpen(false))}>
-                  <div className="navbar__logo-icon">
-                    <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
-                      <rect x="8" y="4" width="5" height="24" fill="#D4AF37"/>
-                      <path d="M8 4h14a7 7 0 0 1 0 14H8" stroke="#D4AF37" strokeWidth="5" fill="none" strokeLinejoin="round"/>
-                      <rect x="27" y="4" width="5" height="24" fill="#D4AF37"/>
-                      <path d="M13 20L27 4" stroke="#D4AF37" strokeWidth="2.5"/>
-                      <path d="M8 31L20 20L32 31" stroke="#D4AF37" strokeWidth="2.5" fill="none"/>
-                      <rect x="18" y="31" width="4" height="5" fill="#D4AF37"/>
-                    </svg>
-                  </div>
-                  <span className="navbar__logo-name" style={{ fontSize: '14px' }}>PLOTTAGE HUB</span>
+                  <img
+                    src="/assets/plottage-hub-logo.png"
+                    alt="Plottage Hub"
+                    className="navbar__logo-img navbar__logo-img--mobile"
+                  />
                 </Link>
                 <button onClick={() => dispatch(setMobileMenuOpen(false))} aria-label="Close menu">
                   <X size={20} color="var(--text-primary)" />
@@ -204,7 +189,7 @@ export default function Navbar() {
                     Login
                   </Link>
                 )}
-                <Link to="/partner" className="btn btn-gold" style={{ width: '100%', justifyContent: 'center' }}
+                <Link to="/list-land" className="btn btn-gold" style={{ width: '100%', justifyContent: 'center' }}
                   onClick={() => dispatch(setMobileMenuOpen(false))}>
                   List Your Land
                 </Link>

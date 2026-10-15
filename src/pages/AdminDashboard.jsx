@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Users, Inbox, Map, CheckCircle2, ShieldCheck, RefreshCw
 } from 'lucide-react'
+import axios from 'axios'
 import toast from 'react-hot-toast'
 import './AdminDashboard.css'
 
@@ -18,11 +19,48 @@ const INITIAL_PARTNERS = [
   { id: 'APP-803', name: 'Siddheshwar Developers', role: 'Developer', location: 'Panvel Suburbs', contact: '+91 98900 12345', docStatus: 'Company Verified', status: 'Under Verification' },
 ]
 
+const INITIAL_LISTINGS = [
+  { id: 'PH-LIST-1001', name: 'Ramesh Patil', phone: '9820199201', title: 'Riverside Agricultural Parcel', propertyType: 'Agricultural', location: 'Karjat, Raigad', area: '5 Acre', price: '₹50 Lakh', status: 'Pending Review', docStatus: '7/12 Extract Available' },
+]
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('leads')
   const [leads, setLeads] = useState(INITIAL_LEADS)
   const [partners, setPartners] = useState(INITIAL_PARTNERS)
+  const [listings, setListings] = useState(INITIAL_LISTINGS)
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    let active = true
+    const load = async () => {
+      try {
+        const [listRes, partRes] = await Promise.all([
+          axios.get('/api/listings').catch(() => null),
+          axios.get('/api/partner-applications').catch(() => null)
+        ])
+        if (!active) return
+        if (listRes?.data?.listings?.length) {
+          setListings(listRes.data.listings)
+        }
+        if (partRes?.data?.applications?.length) {
+          const mapped = partRes.data.applications.map(a => ({
+            id: a.id,
+            name: a.name,
+            role: a.partnerType || a.role || 'Partner',
+            location: a.location || a.targetRegions || a.locations || 'Maharashtra',
+            contact: a.phone || a.email,
+            docStatus: a.docStatus || 'Submitted',
+            status: a.status || 'Pending Review'
+          }))
+          setPartners(mapped)
+        }
+      } catch {
+        // ignore
+      }
+    }
+    load()
+    return () => { active = false }
+  }, [])
 
   const updateLeadStatus = (id, newStatus) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l))
@@ -32,6 +70,11 @@ export default function AdminDashboard() {
   const approvePartner = (id) => {
     setPartners(prev => prev.map(p => p.id === id ? { ...p, status: 'Approved' } : p))
     toast.success(`Partner application ${id} approved!`)
+  }
+
+  const updateListingStatus = (id, newStatus) => {
+    setListings(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l))
+    toast.success(`Listing ${id} marked as ${newStatus}`)
   }
 
   return (
@@ -94,6 +137,12 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab('leads')}
             >
               <Inbox size={16} /> Enquiries & Leads ({leads.length})
+            </button>
+            <button 
+              className={`admin-dash__tab-btn ${activeTab === 'listings' ? 'admin-dash__tab-btn--active' : ''}`}
+              onClick={() => setActiveTab('listings')}
+            >
+              <Map size={16} /> Listed Parcels ({listings.length})
             </button>
             <button 
               className={`admin-dash__tab-btn ${activeTab === 'partners' ? 'admin-dash__tab-btn--active' : ''}`}
@@ -179,6 +228,86 @@ export default function AdminDashboard() {
                           </select>
                         </td>
                       </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'listings' && (
+          <div className="admin-dash__table-card">
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Land Submissions (Pending & Active)</h2>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Properties submitted via List Your Land workflow.</p>
+              </div>
+            </div>
+            <div className="admin-dash__table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Listing ID</th>
+                    <th>Property Title</th>
+                    <th>Seller / Contact</th>
+                    <th>Type & Area</th>
+                    <th>Location</th>
+                    <th>Expected Price</th>
+                    <th>Status</th>
+                    <th>Decision</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listings.map(l => (
+                    <tr key={l.id}>
+                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--gold-primary)' }}>{l.id}</td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{l.title}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{l.docStatus || '7/12 Pending'}</div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{l.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{l.phone}</div>
+                      </td>
+                      <td>
+                        <div>{l.propertyType}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--gold-light)' }}>{l.area} {l.areaUnit}</div>
+                      </td>
+                      <td>{l.location}</td>
+                      <td style={{ fontWeight: 600, color: 'var(--gold-primary)' }}>{l.price}</td>
+                      <td>
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          background: l.status === 'Approved' ? 'rgba(39, 174, 96, 0.15)' : 'rgba(212, 175, 55, 0.15)',
+                          color: l.status === 'Approved' ? 'var(--success)' : 'var(--warning)',
+                          border: `1px solid ${l.status === 'Approved' ? 'rgba(39, 174, 96, 0.3)' : 'rgba(212, 175, 55, 0.3)'}`
+                        }}>
+                          {l.status}
+                        </span>
+                      </td>
+                      <td>
+                        {l.status !== 'Approved' ? (
+                          <button 
+                            className="btn btn-gold" 
+                            style={{ padding: '4px 10px', fontSize: '12px' }} 
+                            onClick={() => updateListingStatus(l.id, 'Approved')}
+                          >
+                            Approve
+                          </button>
+                        ) : (
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ padding: '4px 10px', fontSize: '12px' }} 
+                            onClick={() => updateListingStatus(l.id, 'Pending Review')}
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>

@@ -13,11 +13,6 @@ const landCategories = [
   { icon: '🌳', label: 'FARMHOUSE OPPORTUNITIES' },
 ]
 
-const locationPins = [
-  { name: 'LONAVALA', top: '22%', left: '52%' },
-  { name: 'KARJAT',   top: '38%', left: '62%' },
-  { name: 'ALIBAUG',  top: '35%', left: '82%' },
-]
 
 const fadeUp = {
   hidden:  { opacity: 0, y: 32 },
@@ -52,24 +47,6 @@ export default function Hero() {
         <div className="hero__overlay" />
         <div className="hero__overlay-left" />
         <div className="hero__overlay-bottom" />
-      </div>
-
-      {/* ── Location pins ───────────────────────────────── */}
-      <div className="hero__pins" aria-hidden="true">
-        {locationPins.map((pin, i) => (
-          <motion.div
-            key={pin.name}
-            className="hero__pin"
-            style={{ top: pin.top, left: pin.left }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1.8 + i * 0.2, duration: 0.4 }}
-          >
-            <div className="hero__pin-dot" />
-            <div className="hero__pin-pulse" />
-            <span className="hero__pin-label">{pin.name}</span>
-          </motion.div>
-        ))}
       </div>
 
       {/* ── Hero content ────────────────────────────────── */}

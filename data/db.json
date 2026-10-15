@@ -1,0 +1,92 @@
+{
+  "listings": [
+    {
+      "id": "PH-LIST-206366",
+      "name": "Aniket Shinde",
+      "phone": "9820551122",
+      "email": "aniket@example.com",
+      "title": "5-Acre Agricultural Land in Karjat",
+      "propertyType": "Agricultural Land",
+      "location": "Pune (Lonavala, Mulshi, Haveli, Bhor, Shirur)",
+      "detailedAddress": "Near Bhivpuri Road, Karjat",
+      "area": "5",
+      "areaUnit": "Acre",
+      "price": "50 Lakhs",
+      "priceFlexibility": "Negotiable based on payment terms",
+      "description": "",
+      "infrastructure": "",
+      "docStatus": "7/12 Extract Available & Single Owner",
+      "ownership": "Sole Landowner",
+      "photoAttached": false,
+      "status": "Pending Review",
+      "createdAt": "2026-10-15T01:53:26.367Z"
+    },
+    {
+      "id": "PH-LIST-574479",
+      "priceFlexibility": "Negotiable based on payment terms",
+      "areaUnit": "Acre",
+      "detailedAddress": "Near Pawna Lake, Lonavala",
+      "title": "Pristine Mountain View Parcel",
+      "ownership": "Sole Landowner",
+      "name": "Sunil Gaikwad",
+      "area": "3",
+      "expectedPrice": "?90 Lakh",
+      "location": "Pune (Lonavala, Mulshi, Haveli, Bhor, Shirur)",
+      "propertyType": "Farmhouse / Second Home Parcel",
+      "phone": "9823456789",
+      "docStatus": "7/12 Extract Available & Single Owner",
+      "description": "Clear title Pawna lake facing plot",
+      "email": "sunil@example.com",
+      "status": "Pending Review",
+      "createdAt": "2026-10-15T01:42:54.479Z"
+    },
+    {
+      "id": "PH-LIST-1001",
+      "name": "Ramesh Patil",
+      "phone": "9820199201",
+      "email": "ramesh.patil@example.com",
+      "title": "Riverside Agricultural Parcel",
+      "propertyType": "Agricultural",
+      "location": "Karjat, Raigad",
+      "detailedAddress": "Near Poshir River, Karjat-Matheran Foothills",
+      "area": "5",
+      "areaUnit": "Acre",
+      "price": "50 Lakh",
+      "priceFlexibility": "Negotiable",
+      "description": "Fertile riverside parcel with natural perennial water flow, boundary fencing, and direct tar road connectivity.",
+      "infrastructure": "Paved tar road, 3-phase electricity, natural river frontage",
+      "docStatus": "7/12 Extract Available",
+      "ownership": "Sole Owner",
+      "status": "Pending Review",
+      "createdAt": "2026-10-14T10:30:00.000Z"
+    }
+  ],
+  "partnerApplications": [
+    {
+      "id": "PH-APP-801",
+      "partnerType": "landowner",
+      "name": "Nitin Kadam",
+      "phone": "9822399881",
+      "email": "nitin.kadam@example.com",
+      "location": "Khopoli (12 Acres)",
+      "docStatus": "7/12 Available",
+      "status": "Pending Review",
+      "createdAt": "2026-10-13T14:20:00.000Z"
+    }
+  ],
+  "leads": [
+    {
+      "id": "PH-LEAD-2001",
+      "name": "Rajesh Varma",
+      "phone": "9820144321",
+      "email": "rajesh.varma@example.com",
+      "propertyType": "Agricultural Land",
+      "location": "Karjat",
+      "area": "5",
+      "areaUnit": "Acre",
+      "purpose": "Investment",
+      "status": "New",
+      "createdAt": "2026-10-14T08:45:00.000Z"
+    }
+  ]
+}
