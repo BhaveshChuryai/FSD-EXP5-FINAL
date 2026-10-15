@@ -1,0 +1,100 @@
+/* ============================================================
+   PLOTTAGE HUB — DESIGN SYSTEM TOKENS
+   ============================================================ */
+
+:root {
+  /* ── Color Palette ──────────────────────────────────────── */
+  --bg-primary:      #080808;
+  --bg-secondary:    #101010;
+  --bg-elevated:     #171717;
+  --bg-card:         #131313;
+  --bg-glass:        rgba(23,23,23,0.72);
+
+  --gold-primary:    #D4AF37;
+  --gold-light:      #F1D58A;
+  --gold-dim:        #A8861C;
+  --gold-subtle:     rgba(212,175,55,0.12);
+  --gold-border:     rgba(212,175,55,0.20);
+  --gold-hover:      rgba(212,175,55,0.30);
+
+  --text-primary:    #F5F2EA;
+  --text-secondary:  #A6A6A6;
+  --text-muted:      #6B6B6B;
+  --text-gold:       #D4AF37;
+
+  --border-subtle:   rgba(255,255,255,0.06);
+  --border-gold:     rgba(212,175,55,0.20);
+
+  --success:         #4A9B6F;
+  --success-bg:      rgba(74,155,111,0.12);
+  --error:           #C0392B;
+  --error-bg:        rgba(192,57,43,0.12);
+  --warning:         #D4AF37;
+
+  /* ── Typography ─────────────────────────────────────────── */
+  --font-display:    'Cormorant Garamond', Georgia, serif;
+  --font-body:       'Inter', system-ui, -apple-system, sans-serif;
+
+  --text-xs:    0.75rem;
+  --text-sm:    0.875rem;
+  --text-base:  1rem;
+  --text-lg:    1.125rem;
+  --text-xl:    1.25rem;
+  --text-2xl:   1.5rem;
+  --text-3xl:   1.875rem;
+  --text-4xl:   2.25rem;
+  --text-5xl:   3rem;
+  --text-6xl:   3.75rem;
+  --text-7xl:   4.5rem;
+  --text-8xl:   6rem;
+
+  --leading-tight:  1.15;
+  --leading-snug:   1.35;
+  --leading-normal: 1.6;
+  --leading-loose:  1.8;
+
+  /* ── Spacing ─────────────────────────────────────────────── */
+  --space-1:   0.25rem;
+  --space-2:   0.5rem;
+  --space-3:   0.75rem;
+  --space-4:   1rem;
+  --space-5:   1.25rem;
+  --space-6:   1.5rem;
+  --space-8:   2rem;
+  --space-10:  2.5rem;
+  --space-12:  3rem;
+  --space-16:  4rem;
+  --space-20:  5rem;
+  --space-24:  6rem;
+  --space-32:  8rem;
+  --space-40:  10rem;
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.5);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.6);
+  --shadow-xl:   0 16px 48px rgba(0,0,0,0.7);
+  --shadow-gold: 0 0 24px rgba(212,175,55,0.18);
+
+  /* ── Transitions ─────────────────────────────────────────── */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base:   250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slower: 600ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Z-index scale ───────────────────────────────────────── */
+  --z-below:  -1;
+  --z-base:    0;
+  --z-above:   10;
+  --z-nav:     100;
+  --z-modal:   200;
+  --z-toast:   300;
+}

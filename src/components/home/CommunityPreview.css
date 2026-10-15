@@ -1,0 +1,110 @@
+.community-preview { background: var(--bg-primary); }
+
+.community-preview__layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--space-16);
+  align-items: start;
+}
+
+.community-preview__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.community-preview__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+}
+
+.community-preview__desc {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-loose);
+}
+
+.community-preview__cats {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.community-preview__topics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.community-preview__demo-note {
+  font-size: var(--text-xs);
+  color: var(--error);
+  opacity: 0.6;
+  margin-bottom: var(--space-2);
+}
+
+.topic-card {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+.topic-card:hover {
+  border-color: var(--border-gold);
+  transform: translateX(4px);
+}
+
+.topic-card__icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--gold-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-primary);
+  border: 1px solid var(--gold-border);
+}
+
+.topic-card__body { flex: 1; }
+
+.topic-card__cat {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.topic-card__title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: var(--leading-snug);
+  margin-bottom: var(--space-3);
+}
+
+.topic-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.topic-card__meta span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+@media (max-width: 1023px) {
+  .community-preview__layout { grid-template-columns: 1fr; }
+}
