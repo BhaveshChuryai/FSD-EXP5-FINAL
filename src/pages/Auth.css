@@ -36,11 +36,18 @@
 }
 
 .auth-card__logo-img {
-  height: 64px;
+  height: 72px;
   width: auto;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.8));
+  transition: transform var(--transition-fast);
+}
+
+.auth-card__logo-img:hover {
+  transform: scale(1.04);
 }
 
 .auth-card__title {

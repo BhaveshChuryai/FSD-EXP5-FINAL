@@ -37,20 +37,23 @@
 }
 
 .navbar__logo-img {
-  height: 48px;
+  height: 50px;
   width: auto;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
-  transition: transform var(--transition-fast);
+  border-radius: 6px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+  transition: transform var(--transition-fast), filter var(--transition-fast);
 }
 
 .navbar__logo:hover .navbar__logo-img {
-  transform: scale(1.03);
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.35));
 }
 
 .navbar__logo-img--mobile {
-  height: 40px;
+  height: 42px;
 }
 
 /* ── Nav links ────────────────────────────────────────────── */

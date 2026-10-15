@@ -40,6 +40,11 @@ function FinalCTA() {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.7 }}
         >
+          <img 
+            src="/assets/plottage-hub-logo.png" 
+            alt="Plottage Hub" 
+            style={{ height: '68px', width: 'auto', margin: '0 auto 1.5rem', display: 'block', borderRadius: '8px', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.8))' }} 
+          />
           <span className="section-eyebrow" style={{ justifyContent: 'center' }}>
             Begin Today
           </span>
@@ -52,7 +57,7 @@ function FinalCTA() {
           </p>
           <div className="final-cta__actions">
             <Link to="/explore" className="btn btn-gold">Find Your Land</Link>
-            <Link to="/partner" className="btn btn-outline">List Your Land</Link>
+            <Link to="/list-land" className="btn btn-outline">List Your Land</Link>
           </div>
         </motion.div>
       </div>

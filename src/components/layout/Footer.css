@@ -24,11 +24,18 @@
 }
 
 .footer__logo-img {
-  height: 52px;
+  height: 60px;
   width: auto;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.7));
+  transition: transform var(--transition-fast);
+}
+
+.footer__logo:hover .footer__logo-img {
+  transform: scale(1.04);
 }
 
 .footer__brand-desc {
