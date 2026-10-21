@@ -1,0 +1,30 @@
+[
+  {
+    "_id": "6ad05b05ab6b89fde84f5311",
+    "referenceId": "PH-APP-801001",
+    "partnerType": "Landowner",
+    "name": "Nitin Kadam",
+    "phone": "9822399881",
+    "email": "nitin.kadam@example.com",
+    "location": "Khopoli (12 Acres)",
+    "docStatus": "7/12 Available & Single Owner",
+    "status": "Pending Review",
+    "__v": 0,
+    "createdAt": "2026-10-15T04:48:05.075Z",
+    "updatedAt": "2026-10-15T04:48:05.075Z"
+  },
+  {
+    "_id": "6ad05b05ab6b89fde84f5312",
+    "referenceId": "PH-APP-801002",
+    "partnerType": "Broker",
+    "name": "Akruti Realty Brokers",
+    "phone": "9819944321",
+    "email": "contact@akrutirealty.in",
+    "location": "Lonavala & Khandala",
+    "docStatus": "RERA Registered A519000189",
+    "status": "Approved",
+    "__v": 0,
+    "createdAt": "2026-10-15T04:48:05.075Z",
+    "updatedAt": "2026-10-15T04:48:05.075Z"
+  }
+]

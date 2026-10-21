@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Search, ChevronDown, User, LogOut } from 'lucide-react'
+import { Menu, X, Search, ChevronDown, User, LogOut, Shield } from 'lucide-react'
 import { toggleMobileMenu, setMobileMenuOpen } from '../../store/slices/uiSlice'
-import { logout } from '../../store/slices/authSlice'
+import { logoutUser } from '../../store/slices/authSlice'
 import './Navbar.css'
 
 const navLinks = [
@@ -24,6 +24,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin'
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -36,7 +38,7 @@ export default function Navbar() {
   }, [dispatch, location.pathname])
 
   const handleLogout = () => {
-    dispatch(logout())
+    dispatch(logoutUser())
     setUserMenuOpen(false)
     navigate('/')
   }
@@ -95,6 +97,11 @@ export default function Navbar() {
                       exit={{ opacity: 0, y: -8 }}
                       transition={{ duration: 0.15 }}
                     >
+                      {isAdmin && (
+                        <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="navbar__dropdown-item" style={{ color: 'var(--gold-primary)' }}>
+                          <Shield size={14} /> Admin Portal
+                        </Link>
+                      )}
                       <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="navbar__dropdown-item">
                         <User size={14} /> Dashboard
                       </Link>
@@ -175,6 +182,12 @@ export default function Navbar() {
               <div className="navbar__mobile-footer">
                 {isAuthenticated ? (
                   <>
+                    {isAdmin && (
+                      <Link to="/admin" className="btn btn-outline" style={{ width: '100%', justifyContent: 'center', borderColor: 'var(--gold-primary)', color: 'var(--gold-primary)' }}
+                        onClick={() => dispatch(setMobileMenuOpen(false))}>
+                        Admin Portal
+                      </Link>
+                    )}
                     <Link to="/dashboard" className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }}
                       onClick={() => dispatch(setMobileMenuOpen(false))}>
                       Dashboard

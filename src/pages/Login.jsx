@@ -1,16 +1,17 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setUser, setToken } from '../store/slices/authSlice'
-import axios from 'axios'
+import { authAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import './Auth.css'
 
 export default function Login() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPwd, setShowPwd] = useState(false)
   const [errors, setErrors] = useState({})
@@ -34,13 +35,16 @@ export default function Login() {
     if (Object.keys(errs).length) { setErrors(errs); return }
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/login', form)
+      const res = await authAPI.login(form)
       dispatch(setToken(res.data.token))
       dispatch(setUser(res.data.user))
-      toast.success('Welcome back!')
-      navigate('/dashboard')
+      toast.success(`Welcome back, ${res.data.user?.name || 'Member'}!`)
+
+      const userRole = (res.data.user?.role || '').toLowerCase()
+      const destination = location.state?.from?.pathname || (userRole === 'admin' ? '/admin' : '/dashboard')
+      navigate(destination, { replace: true })
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please check your credentials.'
+      const msg = err.response?.data?.message || err.userMessage || 'Login failed. Please check your credentials.'
       toast.error(msg)
     } finally {
       setLoading(false)

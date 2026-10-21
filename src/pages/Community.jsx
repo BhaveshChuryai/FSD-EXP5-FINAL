@@ -2,7 +2,8 @@ import { useState, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { MessageCircle, Heart, MapPin, Search, TrendingUp, FileText, Users, Building } from 'lucide-react'
+import { MessageCircle, Heart, MapPin, Search, TrendingUp, FileText, Users, Building, MessageSquare } from 'lucide-react'
+import LiveInvestorChat from '../components/chat/LiveInvestorChat'
 import './Community.css'
 
 const categories = [
@@ -23,6 +24,7 @@ const demoPosts = [
 
 export default function Community() {
   const { isAuthenticated } = useSelector(s => s.auth)
+  const [activeTab, setActiveTab] = useState('chat')
   const [search, setSearch] = useState('')
   const [selectedCat, setSelectedCat] = useState('all')
   const ref = useRef(null)
@@ -40,10 +42,10 @@ export default function Community() {
       <div className="community-hero">
         <div className="container community-hero__content">
           <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-            COMMUNITY
+            COMMUNITY & LIVE LOUNGE
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-            Share knowledge. Ask questions. Connect with Maharashtra's land market community.
+            Real-time investor communications, peer insights, and land discovery across Maharashtra.
           </motion.p>
           {!isAuthenticated && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem', flexWrap: 'wrap' }}>
@@ -55,27 +57,51 @@ export default function Community() {
       </div>
 
       <div className="container community-body">
-        <p style={{ fontSize: 'var(--text-xs)', color: 'var(--error)', opacity: 0.6, marginBottom: '1.5rem' }}>
-          ⚠ Demonstration discussions — these are not real user posts
-        </p>
-
-        {/* Search + filters */}
-        <div className="community-controls">
-          <div className="community-search">
-            <Search size={16} />
-            <input type="search" placeholder="Search discussions..." value={search}
-              onChange={e => setSearch(e.target.value)} className="community-search__input" />
-          </div>
-          <div className="community-cats">
-            <button className={`explore__pill ${selectedCat === 'all' ? 'explore__pill--active' : ''}`}
-              onClick={() => setSelectedCat('all')}>All</button>
-            {categories.map(c => (
-              <button key={c.id}
-                className={`explore__pill ${selectedCat === c.id ? 'explore__pill--active' : ''}`}
-                onClick={() => setSelectedCat(c.id)}>{c.label}</button>
-            ))}
-          </div>
+        {/* Tab Switcher: Live Chat vs Forum */}
+        <div className="community-tabs-nav">
+          <button
+            className={`community-tab-btn ${activeTab === 'chat' ? 'community-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('chat')}
+            id="tab-live-chat"
+          >
+            <MessageSquare size={16} /> Live Investor Lounge (WebSockets)
+          </button>
+          <button
+            className={`community-tab-btn ${activeTab === 'forum' ? 'community-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('forum')}
+            id="tab-forum-posts"
+          >
+            <FileText size={16} /> Forum Topics & Insights
+          </button>
         </div>
+
+        {activeTab === 'chat' ? (
+          <div style={{ maxWidth: 880, margin: '0 auto' }}>
+            <LiveInvestorChat />
+          </div>
+        ) : (
+          <>
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--error)', opacity: 0.6, marginBottom: '1.5rem' }}>
+              ⚠ Demonstration discussions — these are sample topic threads
+            </p>
+
+            {/* Search + filters */}
+            <div className="community-controls">
+              <div className="community-search">
+                <Search size={16} />
+                <input type="search" placeholder="Search discussions..." value={search}
+                  onChange={e => setSearch(e.target.value)} className="community-search__input" />
+              </div>
+              <div className="community-cats">
+                <button className={`explore__pill ${selectedCat === 'all' ? 'explore__pill--active' : ''}`}
+                  onClick={() => setSelectedCat('all')}>All</button>
+                {categories.map(c => (
+                  <button key={c.id}
+                    className={`explore__pill ${selectedCat === c.id ? 'explore__pill--active' : ''}`}
+                    onClick={() => setSelectedCat(c.id)}>{c.label}</button>
+                ))}
+              </div>
+            </div>
 
         {/* Posts */}
         <div className="community-posts">
@@ -111,6 +137,8 @@ export default function Community() {
             <p>Sign in or create an account to post, comment, and engage with discussions.</p>
             <Link to="/register" className="btn btn-gold">Join the Community</Link>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

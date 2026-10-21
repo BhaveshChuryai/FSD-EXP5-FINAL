@@ -1,0 +1,92 @@
+name: plottage-hub
+
+# =============================================================================
+# Plottage Hub — Production Docker Compose Orchestration
+# Services:
+#   1. mongodb  - Mongo 7.0 database with persistent volume plottage-hub_mongodb_data
+#   2. backend  - Node.js 20 Express REST API + Socket.IO (port 5000)
+#   3. frontend - Vite React SPA served via Nginx reverse-proxy (port 80)
+# =============================================================================
+
+services:
+  # ============================================================================
+  # 1. MongoDB Database Container
+  # ============================================================================
+  mongodb:
+    image: mongo:7.0
+    container_name: plottage-hub-mongodb
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - plottage-network
+
+  # ============================================================================
+  # 2. Node.js / Express Backend REST API + Socket.IO
+  # ============================================================================
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: plottage-hub-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - path: ./server/.env
+        required: true
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+      MONGODB_URI: ${DOCKER_MONGODB_URI:-mongodb://mongodb:27017/plottage_hub}
+      CLIENT_ORIGIN: "http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - plottage-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  # ============================================================================
+  # 3. React / Vite SPA Frontend (Nginx — static files + API reverse-proxy)
+  # ============================================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: plottage-hub-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - plottage-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/ || exit 1"]
+      interval: 20s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  mongodb_data:
+    name: plottage-hub_mongodb_data
+
+networks:
+  plottage-network:
+    driver: bridge

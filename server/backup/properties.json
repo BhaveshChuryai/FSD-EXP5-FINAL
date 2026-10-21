@@ -1,0 +1,190 @@
+[
+  {
+    "_id": "6ad05b05ab6b89fde84f5304",
+    "title": "Agricultural Land — Karjat Riverside",
+    "description": "Scenic fertile agricultural land along the riverbank in Karjat. Ideal for organic farming, wellness retreat, or private estate. 24/7 natural river water and clear single 7/12 title.",
+    "location": "Karjat, Raigad",
+    "detailedAddress": "Near Poshir River, Karjat-Matheran Foothills",
+    "propertyType": "Agricultural",
+    "area": 5,
+    "areaUnit": "Acre",
+    "acreEquivalent": 5,
+    "price": "₹ 45 – 55 Lakh",
+    "priceAmount": 50,
+    "priceFlexibility": "Negotiable based on payment terms",
+    "images": [
+      "/assets/property-agri.jpg",
+      "/assets/karjat.jpg"
+    ],
+    "infrastructure": [
+      "Tar Road Access",
+      "River Frontage",
+      "3-Phase Electricity",
+      "Boundary Fenced"
+    ],
+    "docStatus": "7/12 Extract Available & Single Owner",
+    "ownership": "Sole Landowner",
+    "featured": true,
+    "status": "Published",
+    "createdBy": null,
+    "__v": 0,
+    "createdAt": "2026-10-15T04:48:05.024Z",
+    "updatedAt": "2026-10-15T04:48:05.024Z"
+  },
+  {
+    "_id": "6ad05b05ab6b89fde84f5305",
+    "title": "Residential Plot — Lonavala Foothills",
+    "description": "Exclusive residential plot in a gated sanctuary overlooking the misty hills of Lonavala with ready Collector NA sanction.",
+    "location": "Lonavala, Pune",
+    "detailedAddress": "Pawna Dam Road, Near Lonavala Valley",
+    "propertyType": "Residential",
+    "area": 2400,
+    "areaUnit": "Sq.ft",
+    "acreEquivalent": 0.055,
+    "price": "₹ 18 – 24 Lakh",
+    "priceAmount": 21,
+    "priceFlexibility": "Fixed Price with bank loan availability",
+    "images": [
+      "/assets/property-residential.jpg",
+      "/assets/lonavala.jpg"
+    ],
+    "infrastructure": [
+      "Internal Tar Roads",
+      "Sanctioned Collector NA",
+      "Underground Electricity",
+      "Water Supply"
+    ],
+    "docStatus": "Clear Collector NA Title with RERA Layout",
+    "ownership": "Sanctioned Layout Developer",
+    "featured": true,
+    "status": "Published",
+    "createdBy": null,
+    "__v": 0,
+    "createdAt": "2026-10-15T04:48:05.025Z",
+    "updatedAt": "2026-10-15T04:48:05.025Z"
+  },
+  {
+    "_id": "6ad05b05ab6b89fde84f5306",
+    "title": "Coastal Farmhouse Land — Alibaug",
+    "description": "Serene coastal paradise located 20 minutes from Mandwa Jetty in Alibaug. Surrounded by lush flora, fruit orchards, and cool sea breezes.",
+    "location": "Alibaug, Raigad",
+    "detailedAddress": "Awas Road, Near Mandwa Beach Jetty",
+    "propertyType": "Farmhouse",
+    "area": 15,
+    "areaUnit": "Guntha",
+    "acreEquivalent": 0.375,
+    "price": "₹ 35 – 50 Lakh",
+    "priceAmount": 42,
+    "priceFlexibility": "Negotiable for direct buyers",
+    "images": [
+      "/assets/alibaug.jpg"
+    ],
+    "infrastructure": [
+      "Coastal Highway Access",
+      "Sweet Water Well",
+      "Fenced Boundary",
+      "Street Lighting"
+    ],
+    "docStatus": "7/12 Title Search Complete (30 Years)",
+    "ownership": "Sole Landowner",
+    "featured": true,
+    "status": "Published",
+    "createdBy": null,
+    "__v": 0,
+    "createdAt": "2026-10-15T04:48:05.025Z",
+    "updatedAt": "2026-10-15T04:48:05.025Z"
+  },
+  {
+    "_id": "6ad05b05ab6b89fde84f5307",
+    "title": "Agricultural Land — Karjat Hills",
+    "description": "Expansive hillside agricultural parcel capturing panoramic Sahyadri views, ideal for private farmhouses or horticulture.",
+    "location": "Karjat, Raigad",
+    "detailedAddress": "Kashele-Bhimashankar Road, Karjat",
+    "propertyType": "Agricultural",
+    "area": 8,
+    "areaUnit": "Acre",
+    "acreEquivalent": 8,
+    "price": "₹ 60 – 75 Lakh",
+    "priceAmount": 68,
+    "priceFlexibility": "Negotiable based on payment milestones",
+    "images": [
+      "/assets/karjat.jpg"
+    ],
+    "infrastructure": [
+      "Highway Connectivity",
+      "Perennial Stream",
+      "Single 7/12 Title",
+      "High Voltage Line"
+    ],
+    "docStatus": "7/12 Extract Available & Single Owner",
+    "ownership": "Sole Landowner",
+    "featured": false,
+    "status": "Published",
+    "createdBy": null,
+    "__v": 0,
+    "createdAt": "2026-10-15T04:48:05.025Z",
+    "updatedAt": "2026-10-15T04:48:05.025Z"
+  },
+  {
+    "_id": "6ad05b05ab6b89fde84f5308",
+    "title": "Investment Plot — Panvel Growth Corridor",
+    "description": "High-growth potential land parcel located in the vicinity of the Navi Mumbai International Airport economic hub.",
+    "location": "Panvel, Raigad",
+    "detailedAddress": "Near Palaspe Phata, Old Mumbai-Pune Expressway",
+    "propertyType": "Investment",
+    "area": 1200,
+    "areaUnit": "Sq.ft",
+    "acreEquivalent": 0.0275,
+    "price": "₹ 12 – 16 Lakh",
+    "priceAmount": 14,
+    "priceFlexibility": "Non-negotiable institutional pricing",
+    "images": [
+      "/assets/panvel.jpg"
+    ],
+    "infrastructure": [
+      "Metro Vicinity",
+      "Clear Title",
+      "Demarcated Boundary",
+      "High Appreciation Corridor"
+    ],
+    "docStatus": "Sanctioned NA Layout Title",
+    "ownership": "Developer Partner",
+    "featured": false,
+    "status": "Published",
+    "createdBy": null,
+    "__v": 0,
+    "createdAt": "2026-10-15T04:48:05.025Z",
+    "updatedAt": "2026-10-15T04:48:05.025Z"
+  },
+  {
+    "_id": "6ad05b05ab6b89fde84f5309",
+    "title": "Farmhouse Estate — Lonavala Valley",
+    "description": "Premium table-land parcel capturing mist-filled cliff vistas in prime Lonavala, ready for bespoke architectural estate development.",
+    "location": "Lonavala, Pune",
+    "detailedAddress": "Khandala-Lonavala Ridge Viewpoint",
+    "propertyType": "Farmhouse",
+    "area": 20,
+    "areaUnit": "Guntha",
+    "acreEquivalent": 0.5,
+    "price": "₹ 80 Lakh – 1.2 Cr",
+    "priceAmount": 100,
+    "priceFlexibility": "Negotiable for quick closing",
+    "images": [
+      "/assets/lonavala.jpg"
+    ],
+    "infrastructure": [
+      "Valley View Plateau",
+      "Private Concrete Access Road",
+      "Gated Compound Wall",
+      "Direct Power Line"
+    ],
+    "docStatus": "Clear Title with 7/12 & NOC",
+    "ownership": "Sole Landowner",
+    "featured": false,
+    "status": "Published",
+    "createdBy": null,
+    "__v": 0,
+    "createdAt": "2026-10-15T04:48:05.025Z",
+    "updatedAt": "2026-10-15T04:48:05.025Z"
+  }
+]

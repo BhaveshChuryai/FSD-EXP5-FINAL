@@ -1,0 +1,141 @@
+{
+  "info": {
+    "name": "Plottage Hub API - FSD Experiments 4 & 5",
+    "description": "Postman API Collection for FSD Experiment 4 (REST API + MongoDB + Mongoose) and Experiment 5 (Secure REST APIs).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Register New User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Student Demo User\",\n  \"email\": \"student@example.com\",\n  \"phone\": \"9820123456\",\n  \"password\": \"SecurePass@123\",\n  \"role\": \"Customer\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Login Admin",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@plottagehub.com\",\n  \"password\": \"Admin@12345\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "Properties - Get All (Public)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/properties?page=1&limit=10&location=Karjat&type=Agricultural",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "properties"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" },
+            { "key": "location", "value": "Karjat" },
+            { "key": "type", "value": "Agricultural" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Properties - Submit Land Listing (Public)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Riverside Farmhouse Parcel in Karjat\",\n  \"description\": \"Scenic fertile agricultural land along riverbank.\",\n  \"location\": \"Karjat, Raigad\",\n  \"propertyType\": \"Agricultural Land\",\n  \"area\": 5,\n  \"areaUnit\": \"Acre\",\n  \"price\": \"₹ 50 Lakh\",\n  \"priceAmount\": 50,\n  \"priceFlexibility\": \"Negotiable\",\n  \"docStatus\": \"7/12 Extract Available\",\n  \"ownership\": \"Sole Landowner\",\n  \"name\": \"Ramesh Patil\",\n  \"phone\": \"9820199201\",\n  \"email\": \"ramesh@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/properties",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "properties"]
+        }
+      }
+    },
+    {
+      "name": "Leads - Submit Buyer Requirement (Public)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Rajesh Varma\",\n  \"phone\": \"9820144321\",\n  \"email\": \"rajesh.varma@example.com\",\n  \"propertyType\": \"Agricultural Land\",\n  \"location\": \"Karjat\",\n  \"minBudget\": 40,\n  \"maxBudget\": 60,\n  \"area\": \"5\",\n  \"areaUnit\": \"Acre\",\n  \"purpose\": \"Investment\",\n  \"timeline\": \"Within 1 month\",\n  \"requirements\": \"Fertile land with tar road and water access.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/leads",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "leads"]
+        }
+      }
+    },
+    {
+      "name": "Leads - Get All (Admin Protected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/leads",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "leads"]
+        }
+      }
+    },
+    {
+      "name": "Properties - Admin Get All Listings",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/properties/admin/all",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "properties", "admin", "all"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "jwtToken",
+      "value": ""
+    }
+  ]
+}

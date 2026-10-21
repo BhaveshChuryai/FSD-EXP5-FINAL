@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-10-21T20:17:43.546Z",
+  "database": "plottage_hub",
+  "source": "127.0.0.1:27017",
+  "collections": {
+    "users": 2,
+    "properties": 6,
+    "partnerapplications": 2,
+    "leads": 10
+  }
+}

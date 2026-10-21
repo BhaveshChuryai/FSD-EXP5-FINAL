@@ -1,15 +1,16 @@
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Heart, FileText, Bell, LogOut } from 'lucide-react'
-import { useDispatch } from 'react-redux'
-import { logout } from '../store/slices/authSlice'
+import { User, Heart, FileText, Bell, LogOut, Shield } from 'lucide-react'
+import { logoutUser } from '../store/slices/authSlice'
 
 export default function Dashboard() {
   const { isAuthenticated, user } = useSelector(s => s.auth)
   const dispatch = useDispatch()
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
+
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin'
 
   return (
     <div style={{ paddingTop: 80, minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -20,14 +21,37 @@ export default function Dashboard() {
               <User size={28} color="var(--gold-primary)" />
             </div>
             <div>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 500 }}>
-                Welcome, {user?.name || 'Member'}
-              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 500 }}>
+                  Welcome, {user?.name || 'Member'}
+                </h1>
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: isAdmin ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                    border: `1px solid ${isAdmin ? 'var(--gold-primary)' : 'rgba(255,255,255,0.15)'}`,
+                    color: isAdmin ? 'var(--gold-primary)' : 'var(--text-secondary)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {user?.role || 'user'}
+                </span>
+              </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{user?.email}</p>
             </div>
-            <button onClick={() => dispatch(logout())} className="btn btn-ghost" style={{ marginLeft: 'auto', color: 'var(--error)' }}>
-              <LogOut size={16} /> Sign Out
-            </button>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+              {isAdmin && (
+                <Link to="/admin" className="btn btn-outline" style={{ borderColor: 'var(--gold-primary)', color: 'var(--gold-primary)' }}>
+                  <Shield size={16} /> Admin Portal
+                </Link>
+              )}
+              <button onClick={() => dispatch(logoutUser())} className="btn btn-ghost" style={{ color: 'var(--error)' }}>
+                <LogOut size={16} /> Sign Out
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>

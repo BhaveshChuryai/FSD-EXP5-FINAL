@@ -7,7 +7,18 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "npm --prefix server run dev",
+    "server:start": "npm --prefix server start",
+    "server:seed": "npm --prefix server run seed",
+    "server:view-db": "npm --prefix server run view-db",
+    "server:backup": "npm --prefix server run backup",
+    "server:migrate": "npm --prefix server run migrate",
+    "server:bootstrap-admin": "npm --prefix server run bootstrap-admin",
+    "server:test": "npm --prefix server test",
+    "server:test:exp6": "npm --prefix server run test:exp6",
+    "server:test:exp8": "npm --prefix server run test:exp8",
+    "server:test:all": "npm --prefix server run test:all"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -21,6 +32,7 @@
     "react-hot-toast": "^2.6.1",
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.4",
+    "socket.io-client": "^4.8.4",
     "three": "^0.186.1"
   },
   "devDependencies": {

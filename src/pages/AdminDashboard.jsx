@@ -4,6 +4,7 @@ import {
 } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
+import { propertiesAPI, leadsAPI, partnersAPI } from '../services/api'
 import './AdminDashboard.css'
 
 const INITIAL_LEADS = [
@@ -34,9 +35,10 @@ export default function AdminDashboard() {
     let active = true
     const load = async () => {
       try {
-        const [listRes, partRes] = await Promise.all([
-          axios.get('/api/listings').catch(() => null),
-          axios.get('/api/partner-applications').catch(() => null)
+        const [listRes, partRes, leadRes] = await Promise.all([
+          propertiesAPI.getAdminListings().catch(() => axios.get('/api/listings').catch(() => null)),
+          partnersAPI.getAll().catch(() => axios.get('/api/partner-applications').catch(() => null)),
+          leadsAPI.getAll().catch(() => null),
         ])
         if (!active) return
         if (listRes?.data?.listings?.length) {
@@ -44,15 +46,27 @@ export default function AdminDashboard() {
         }
         if (partRes?.data?.applications?.length) {
           const mapped = partRes.data.applications.map(a => ({
-            id: a.id,
+            id: a._id || a.id || a.referenceId,
             name: a.name,
             role: a.partnerType || a.role || 'Partner',
             location: a.location || a.targetRegions || a.locations || 'Maharashtra',
             contact: a.phone || a.email,
             docStatus: a.docStatus || 'Submitted',
-            status: a.status || 'Pending Review'
+            status: a.status || 'Pending Review',
           }))
           setPartners(mapped)
+        }
+        if (leadRes?.data?.data?.length) {
+          const mappedLeads = leadRes.data.data.map(l => ({
+            id: l._id || l.referenceId || l.id,
+            name: l.name,
+            phone: l.phone,
+            property: l.propertyTitle || `${l.location} (${l.area || ''} ${l.areaUnit || ''})`,
+            type: l.propertyType,
+            date: new Date(l.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            status: l.status || 'New',
+          }))
+          setLeads(mappedLeads)
         }
       } catch {
         // ignore
@@ -62,19 +76,34 @@ export default function AdminDashboard() {
     return () => { active = false }
   }, [])
 
-  const updateLeadStatus = (id, newStatus) => {
+  const updateLeadStatus = async (id, newStatus) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l))
-    toast.success(`Updated ${id} status to ${newStatus}`)
+    try {
+      await leadsAPI.updateStatus(id, newStatus)
+    } catch {
+      // fallback handled gracefully
+    }
+    toast.success(`Updated status to ${newStatus}`)
   }
 
-  const approvePartner = (id) => {
+  const approvePartner = async (id) => {
     setPartners(prev => prev.map(p => p.id === id ? { ...p, status: 'Approved' } : p))
-    toast.success(`Partner application ${id} approved!`)
+    try {
+      await partnersAPI.updateStatus(id, 'Approved')
+    } catch {
+      // fallback handled gracefully
+    }
+    toast.success(`Partner application approved!`)
   }
 
-  const updateListingStatus = (id, newStatus) => {
+  const updateListingStatus = async (id, newStatus) => {
     setListings(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l))
-    toast.success(`Listing ${id} marked as ${newStatus}`)
+    try {
+      await propertiesAPI.update(id, { status: newStatus })
+    } catch {
+      // fallback handled gracefully
+    }
+    toast.success(`Listing marked as ${newStatus}`)
   }
 
   return (

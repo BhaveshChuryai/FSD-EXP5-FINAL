@@ -1,0 +1,24 @@
+[
+  {
+    "_id": "6ad05b04ab6b89fde84f52f5",
+    "name": "Plottage Hub Admin",
+    "email": "admin@plottagehub.com",
+    "phone": "9820000001",
+    "password": "$2b$10$9oTLkYJJ101Iy6G.wOZHlO4YjkbE1bqNr6k/72.MMsmQQgrxhl4nu",
+    "role": "Admin",
+    "createdAt": "2026-10-15T04:48:04.477Z",
+    "updatedAt": "2026-10-15T04:48:04.477Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad05b04ab6b89fde84f52fb",
+    "name": "Aarav Mehta",
+    "email": "buyer@plottagehub.com",
+    "phone": "9820123456",
+    "password": "$2b$10$JJ4.T0OSrSzBF9aeoYMDEuL0j3UIApFUutpgj4MAmPMpDdgtfkiVq",
+    "role": "Customer",
+    "createdAt": "2026-10-15T04:48:04.793Z",
+    "updatedAt": "2026-10-15T04:48:04.793Z",
+    "__v": 0
+  }
+]

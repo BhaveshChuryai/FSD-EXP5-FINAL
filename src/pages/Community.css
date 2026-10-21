@@ -16,6 +16,41 @@
 
 .community-body { padding: var(--space-10) var(--space-8) var(--space-20); }
 
+.community-tabs-nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: var(--space-8);
+}
+
+.community-tab-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.community-tab-btn:hover {
+  border-color: var(--gold-primary);
+  color: var(--text-primary);
+}
+
+.community-tab-btn--active {
+  background: rgba(200, 169, 110, 0.12);
+  border-color: var(--gold-primary);
+  color: var(--gold-primary);
+  box-shadow: 0 4px 14px rgba(200, 169, 110, 0.15);
+}
+
 .community-controls {
   display: flex;
   flex-direction: column;

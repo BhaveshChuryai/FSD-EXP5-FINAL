@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, MapPin, Ruler, IndianRupee, Eye, MessageSquare, 
@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { propertiesAPI } from '../services/api'
 import './ExploreLand.css'
 
 const DEMO_PROPERTIES = [
@@ -133,6 +134,46 @@ export default function ExploreLand() {
   const [selectedArea, setSelectedArea] = useState('all')
   const [sort, setSort] = useState('newest')
   const [showFilters, setShowFilters] = useState(false)
+  const [properties, setProperties] = useState(DEMO_PROPERTIES)
+  const [isLiveDB, setIsLiveDB] = useState(false)
+  const [_loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    const fetchLiveProperties = async () => {
+      setLoading(true)
+      try {
+        const res = await propertiesAPI.getAll({ limit: 50 })
+        if (mounted && res.data?.data && res.data.data.length > 0) {
+          const mapped = res.data.data.map(p => ({
+            id: p._id || p.id,
+            title: p.title,
+            location: p.location,
+            type: p.propertyType,
+            area: String(p.area),
+            unit: p.areaUnit,
+            acreEquivalent: p.acreEquivalent || (p.areaUnit?.toLowerCase().includes('acre') ? Number(p.area) : 1),
+            price: p.price,
+            minPriceLakh: p.priceAmount || 30,
+            maxPriceLakh: p.priceAmount || 60,
+            image: (p.images && p.images[0]) || '/assets/property-agri.jpg',
+            infra: p.infrastructure || [],
+            description: p.description || '',
+            isLiveRecord: true,
+          }))
+          setProperties(mapped)
+          setIsLiveDB(true)
+        }
+      } catch {
+        // Graceful fallback to demo properties
+        setIsLiveDB(false)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    fetchLiveProperties()
+    return () => { mounted = false }
+  }, [])
   
   // Local bookmarks state
   const [savedIds, setSavedIds] = useState(() => {
@@ -180,7 +221,7 @@ export default function ExploreLand() {
 
   // Filtering logic
   const filtered = useMemo(() => {
-    return DEMO_PROPERTIES.filter(p => {
+    return properties.filter(p => {
       // Search term
       if (search.trim()) {
         const q = search.toLowerCase()
@@ -221,7 +262,7 @@ export default function ExploreLand() {
       if (sort === 'area-desc') return b.acreEquivalent - a.acreEquivalent
       return 0 // newest default
     })
-  }, [search, selectedType, selectedLocation, selectedBudget, selectedArea, sort])
+  }, [properties, search, selectedType, selectedLocation, selectedBudget, selectedArea, sort])
 
   return (
     <div className="explore">
@@ -387,9 +428,17 @@ export default function ExploreLand() {
         {/* Status notice */}
         <div className="explore__notice-banner">
           <div className="explore__notice-left">
-            <span className="badge badge-gold">Verified Pipeline Preview</span>
+            {isLiveDB ? (
+              <span className="badge" style={{ background: 'rgba(39, 174, 96, 0.15)', color: '#27ae60', border: '1px solid rgba(39,174,96,0.3)' }}>
+                MongoDB Live Database
+              </span>
+            ) : (
+              <span className="badge badge-gold">Verified Pipeline Preview</span>
+            )}
             <span className="explore__notice-text">
-              Displaying demonstration parcels illustrating platform discovery, legal vetting, and spatial intelligence.
+              {isLiveDB
+                ? 'Serving live inventory dynamically from Express REST API connected to MongoDB database.'
+                : 'Displaying demonstration parcels illustrating platform discovery, legal vetting, and spatial intelligence.'}
             </span>
           </div>
           <Link to="/list-land" className="explore__notice-link">
@@ -449,7 +498,13 @@ export default function ExploreLand() {
                       {/* Badges */}
                       <div className="prop-card__badges">
                         <span className="badge badge-gold">{prop.type}</span>
-                        <span className="badge prop-card__demo-badge">Curated Demo Parcel</span>
+                        {prop.isLiveRecord ? (
+                          <span className="badge" style={{ background: 'rgba(39,174,96,0.18)', color: '#27ae60', border: '1px solid rgba(39,174,96,0.25)', fontSize: '9px' }}>
+                            MongoDB Verified
+                          </span>
+                        ) : (
+                          <span className="badge prop-card__demo-badge">Curated Demo Parcel</span>
+                        )}
                       </div>
 
                       {/* Bookmark Button */}

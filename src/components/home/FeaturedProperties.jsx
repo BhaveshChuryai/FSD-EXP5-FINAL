@@ -1,10 +1,11 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { MapPin, Ruler, IndianRupee, Eye, MessageSquare } from 'lucide-react'
+import { propertiesAPI } from '../../services/api'
 import './FeaturedProperties.css'
 
-// Demo data — clearly labeled; replace with API data in production
+// Demo data — clearly labeled; fallback if offline
 const demoProperties = [
   {
     id: 'demo-1',
@@ -47,6 +48,37 @@ const demoProperties = [
 export default function FeaturedProperties() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
+  const [properties, setProperties] = useState(demoProperties)
+  const [isLiveDB, setIsLiveDB] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    const fetchFeatured = async () => {
+      try {
+        const res = await propertiesAPI.getAll({ limit: 3 })
+        if (mounted && res.data?.data && res.data.data.length > 0) {
+          const mapped = res.data.data.map(p => ({
+            id: p._id || p.id,
+            title: p.title,
+            location: p.location,
+            area: String(p.area),
+            areaUnit: p.areaUnit,
+            price: p.price,
+            type: p.propertyType,
+            image: (p.images && p.images[0]) || '/assets/property-agri.jpg',
+            infrastructure: p.infrastructure || ['Clear Title', 'Road Access'],
+            isDemo: false,
+          }))
+          setProperties(mapped)
+          setIsLiveDB(true)
+        }
+      } catch {
+        setIsLiveDB(false)
+      }
+    }
+    fetchFeatured()
+    return () => { mounted = false }
+  }, [])
 
   return (
     <section className="featured section" ref={ref}>
@@ -64,13 +96,13 @@ export default function FeaturedProperties() {
           <p className="featured__desc">
             Explore a selection of noteworthy land opportunities across Maharashtra's most sought-after locations.
           </p>
-          <p className="featured__demo-notice">
-            ⚠ Demonstration data — not verified live inventory
+          <p className="featured__demo-notice" style={isLiveDB ? { color: 'var(--success)' } : {}}>
+            {isLiveDB ? '✓ Live Inventory: Connected to MongoDB Database' : '⚠ Demonstration data — not verified live inventory'}
           </p>
         </motion.div>
 
         <div className="featured__grid">
-          {demoProperties.map((prop, i) => (
+          {properties.map((prop, i) => (
             <motion.div
               key={prop.id}
               className="prop-card"

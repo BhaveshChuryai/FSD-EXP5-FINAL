@@ -1,8 +1,12 @@
 import { Routes, Route } from 'react-router-dom'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import PageLoader from './components/ui/PageLoader'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import AdminRoute from './components/auth/AdminRoute'
+import { fetchCurrentUser } from './store/slices/authSlice'
 
 // Lazy-loaded pages
 const Home            = lazy(() => import('./pages/Home'))
@@ -18,6 +22,16 @@ const ListLand        = lazy(() => import('./pages/ListLand'))
 const NotFound        = lazy(() => import('./pages/NotFound'))
 
 export default function App() {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    // Restore and validate session token with backend if present
+    const token = localStorage.getItem('ph_token')
+    if (token) {
+      dispatch(fetchCurrentUser())
+    }
+  }, [dispatch])
+
   return (
     <div className="app">
       <Navbar />
@@ -32,8 +46,22 @@ export default function App() {
             <Route path="/community"        element={<Community />} />
             <Route path="/login"            element={<Login />} />
             <Route path="/register"         element={<Register />} />
-            <Route path="/dashboard"        element={<Dashboard />} />
-            <Route path="/admin"            element={<AdminDashboard />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
             <Route path="*"                 element={<NotFound />} />
           </Routes>
         </Suspense>

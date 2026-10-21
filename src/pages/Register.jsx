@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setUser, setToken } from '../store/slices/authSlice'
-import axios from 'axios'
+import { authAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import './Auth.css'
 
@@ -38,13 +38,15 @@ export default function Register() {
     if (Object.keys(errs).length) { setErrors(errs); return }
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/register', form)
+      const res = await authAPI.register(form)
       dispatch(setToken(res.data.token))
       dispatch(setUser(res.data.user))
       toast.success('Account created! Welcome to Plottage Hub.')
       navigate('/dashboard')
     } catch (err) {
-      const msg = err.response?.data?.message || 'Registration failed. Please try again.'
+      const errorData = err.response?.data
+      const firstZodError = errorData?.errors?.[0]?.message
+      const msg = firstZodError || errorData?.message || err.userMessage || 'Registration failed. Please try again.'
       toast.error(msg)
     } finally {
       setLoading(false)
