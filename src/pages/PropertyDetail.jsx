@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
@@ -7,7 +7,7 @@ import {
   Send, Sparkles, Building, Info, Share2, Heart
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import axios from 'axios'
+import { propertiesAPI, leadsAPI } from '../services/api'
 import './PropertyDetail.css'
 
 const PROPERTIES_DB = {
@@ -112,17 +112,55 @@ function createRefId() {
 
 export default function PropertyDetail() {
   const { id } = useParams()
-  const prop = PROPERTIES_DB[id] || {
+  const initialProp = PROPERTIES_DB[id] || {
     ...DEFAULT_PROP,
     id: id || 'demo-property',
     title: 'Premium Verified Land Parcel',
   }
+  const [prop, setProp] = useState(initialProp)
 
   const [activeImg, setActiveImg] = useState(0)
   const [form, setForm] = useState({ name: '', phone: '', email: '', preferredDate: '', message: '' })
   const [loading, setLoading] = useState(false)
   const [refId, setRefId] = useState(null)
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState(() => {
+    try {
+      const ids = JSON.parse(localStorage.getItem('ph_saved_props') || '[]')
+      return ids.includes(id)
+    } catch { return false }
+  })
+
+  useEffect(() => {
+    let mounted = true
+    if (id && !PROPERTIES_DB[id]) {
+      propertiesAPI.getById(id)
+        .then(res => {
+          if (!mounted) return
+          const live = res.data?.data
+          if (live) {
+            setProp({
+              id: live._id || live.id,
+              title: live.title,
+              location: live.location,
+              type: live.propertyType,
+              area: String(live.area),
+              unit: live.areaUnit,
+              price: live.price,
+              images: live.images?.length ? live.images : ['/assets/property-agri.jpg'],
+              infra: live.infrastructure?.length ? live.infrastructure : ['Clear Title', 'Road Access'],
+              zone: live.zone || 'Clear Zone',
+              titleStatus: live.docStatus || 'Clear & Marketable Title',
+              satbaraStatus: live.docStatus || '7/12 Extract Available',
+              description: live.description || '',
+            })
+          }
+        })
+        .catch(() => {
+          // Keep initial fallback if offline or not found
+        })
+    }
+    return () => { mounted = false }
+  }, [id])
 
   const handleEnquiry = async (e) => {
     e.preventDefault()
@@ -132,7 +170,7 @@ export default function PropertyDetail() {
     }
     setLoading(true)
     try {
-      const res = await axios.post('/api/enquiries', {
+      const res = await leadsAPI.submitEnquiry({
         ...form,
         propertyId: prop.id,
         propertyTitle: prop.title,
@@ -160,8 +198,14 @@ export default function PropertyDetail() {
             <button 
               className="btn btn-ghost" 
               onClick={() => {
-                setSaved(!saved)
-                toast.success(saved ? 'Removed from saved properties' : 'Saved to your dashboard!')
+                const next = !saved
+                setSaved(next)
+                try {
+                  const ids = JSON.parse(localStorage.getItem('ph_saved_props') || '[]')
+                  const updated = next ? [...ids, prop.id] : ids.filter(i => i !== prop.id)
+                  localStorage.setItem('ph_saved_props', JSON.stringify(updated))
+                } catch { /* ignore */ }
+                toast.success(next ? 'Saved to your shortlist!' : 'Removed from saved properties')
               }}
               style={{ color: saved ? 'var(--gold-primary)' : 'var(--text-secondary)' }}
             >

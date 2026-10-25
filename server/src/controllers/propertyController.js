@@ -148,7 +148,7 @@ export const createProperty = async (req, res, next) => {
     const payload = { ...req.body }
 
     // If an authenticated Admin creates the listing, allow direct publication
-    const isAdmin = req.user?.role === 'Admin'
+    const isAdmin = (req.user?.role || '').toLowerCase() === 'admin'
     const status = isAdmin && payload.status ? payload.status : 'Pending Review'
 
     // Separate private contact info from public listing fields

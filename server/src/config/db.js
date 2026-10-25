@@ -49,6 +49,34 @@ export async function connectDB() {
 
     return conn
   } catch (error) {
+    // If primary URI was remote/Atlas and failed (e.g. IP whitelist / network / offline), try local MongoDB fallback
+    const localFallbackUri = process.env.LOCAL_MONGODB_URI || 'mongodb://127.0.0.1:27017/plottage_hub'
+    if (uri !== localFallbackUri && (uri.startsWith('mongodb+srv://') || !uri.includes('127.0.0.1'))) {
+      console.warn(`⚠️ Primary MongoDB connection failed (${error.message}). Attempting fallback to local MongoDB at: ${localFallbackUri}`)
+      try {
+        const localConn = await mongoose.connect(localFallbackUri, {
+          maxPoolSize: 10,
+          serverSelectionTimeoutMS: 5000,
+          socketTimeoutMS: 45000,
+        })
+        isConnected = true
+        console.log(`✅ MongoDB Connected successfully to fallback local host: ${localConn.connection.host} [db: ${localConn.connection.name}]`)
+
+        mongoose.connection.on('error', (err) => {
+          console.error('❌ MongoDB runtime error:', err.message)
+        })
+
+        mongoose.connection.on('disconnected', () => {
+          console.warn('⚠️ MongoDB connection lost. Attempting reconnection...')
+          isConnected = false
+        })
+
+        return localConn
+      } catch (fallbackError) {
+        console.error('❌ Failed to establish fallback local MongoDB connection:', fallbackError.message)
+      }
+    }
+
     console.error('❌ Failed to establish initial MongoDB connection:', error.message)
     throw error
   }

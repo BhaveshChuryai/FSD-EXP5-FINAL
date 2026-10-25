@@ -9,9 +9,16 @@ export const createApplication = async (req, res, next) => {
     const payload = req.body
 
     const sanitizedDetails = {}
-    if (payload.reraNumber) sanitizedDetails.reraNumber = payload.reraNumber
-    if (payload.experience) sanitizedDetails.experience = payload.experience
-    if (payload.notes) sanitizedDetails.notes = payload.notes
+    const detailKeys = [
+      'reraNumber', 'experience', 'notes', 'company', 'agency', 'firm',
+      'locations', 'targetRegions', 'ticketSize', 'investorType',
+      'domain', 'mandateTrackRecord', 'area', 'propertyType'
+    ]
+    detailKeys.forEach(k => {
+      if (payload[k] !== undefined && payload[k] !== '') {
+        sanitizedDetails[k] = payload[k]
+      }
+    })
 
     const newApp = new PartnerApplication({
       partnerType: payload.partnerType || 'Landowner',

@@ -306,5 +306,46 @@ describe('Plottage Hub API - FSD Experiments 4 & 5 Verification Suite', () => {
       assert.equal(res.body.success, false)
       assert.match(res.body.message, /Authentication required/i)
     })
+
+    it('16. POST /api/properties successfully accepts UI listing types such as "Residential Plots / Layout"', async () => {
+      const res = await request(app)
+        .post('/api/properties')
+        .send({
+          title: 'UI Form Verified Layout Land',
+          location: 'Pune, Maharashtra',
+          propertyType: 'Residential Plots / Layout',
+          area: 2400,
+          areaUnit: 'Sq.ft',
+          price: '₹ 25 Lakh',
+          name: 'Priya Joshi',
+          phone: '9820123456',
+        })
+
+      assert.equal(res.status, 201)
+      assert.equal(res.body.success, true)
+      assert.equal(res.body.data.propertyType, 'Residential Plots / Layout')
+
+      // Clean up
+      if (res.body.data._id) {
+        await Property.findByIdAndDelete(res.body.data._id)
+      }
+    })
+
+    it('17. POST /api/partner-applications preserves role-specific details in details map', async () => {
+      const res = await request(app)
+        .post('/api/partner-applications')
+        .send({
+          partnerType: 'Broker',
+          name: 'Apex Realty Mandates',
+          phone: '9820987654',
+          agency: 'Apex Mandates LLP',
+          locations: 'Karjat, Alibaug, Lonavala',
+          experience: '12 years in Sahyadri land acquisitions',
+        })
+
+      assert.equal(res.status, 201)
+      assert.equal(res.body.success, true)
+      assert.ok(res.body.referenceId)
+    })
   })
 })

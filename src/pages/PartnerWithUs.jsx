@@ -4,7 +4,7 @@ import {
   Trees, Handshake, Building2, Award, TrendingUp, Globe, 
   ArrowRight, Sparkles 
 } from 'lucide-react'
-import axios from 'axios'
+import apiClient from '../services/api'
 import toast from 'react-hot-toast'
 import SuccessModal from '../components/ui/SuccessModal'
 import './PartnerWithUs.css'
@@ -131,7 +131,7 @@ export default function PartnerWithUs() {
 
     setLoading(true)
     try {
-      const response = await axios.post('/api/partner-applications', {
+      const response = await apiClient.post('/partner-applications', {
         ...formData,
         partnerType: selectedRole,
       })

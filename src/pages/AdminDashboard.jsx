@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { 
   Users, Inbox, Map, CheckCircle2, ShieldCheck, RefreshCw
 } from 'lucide-react'
-import axios from 'axios'
 import toast from 'react-hot-toast'
 import { propertiesAPI, leadsAPI, partnersAPI } from '../services/api'
 import './AdminDashboard.css'
@@ -30,51 +29,61 @@ export default function AdminDashboard() {
   const [partners, setPartners] = useState(INITIAL_PARTNERS)
   const [listings, setListings] = useState(INITIAL_LISTINGS)
   const [search, setSearch] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [listRes, partRes, leadRes] = await Promise.all([
+        propertiesAPI.getAdminListings().catch(() => null),
+        partnersAPI.getAll().catch(() => null),
+        leadsAPI.getAll().catch(() => null),
+      ])
+
+      if (listRes?.data?.listings?.length) {
+        setListings(listRes.data.listings)
+      }
+      if (partRes?.data?.applications?.length) {
+        const mapped = partRes.data.applications.map(a => ({
+          id: a._id || a.id || a.referenceId,
+          name: a.name,
+          role: a.partnerType || a.role || 'Partner',
+          location: a.location || a.targetRegions || a.locations || 'Maharashtra',
+          contact: a.phone || a.email,
+          docStatus: a.docStatus || 'Submitted',
+          status: a.status || 'Pending Review',
+        }))
+        setPartners(mapped)
+      }
+      if (leadRes?.data?.data?.length) {
+        const mappedLeads = leadRes.data.data.map(l => ({
+          id: l._id || l.referenceId || l.id,
+          name: l.name,
+          phone: l.phone,
+          property: l.propertyTitle || `${l.location} (${l.area || ''} ${l.areaUnit || ''})`,
+          type: l.propertyType,
+          date: new Date(l.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          status: l.status || 'New',
+        }))
+        setLeads(mappedLeads)
+      }
+    } catch {
+      // Fallback handled gracefully
+    }
+  }, [])
 
   useEffect(() => {
-    let active = true
-    const load = async () => {
-      try {
-        const [listRes, partRes, leadRes] = await Promise.all([
-          propertiesAPI.getAdminListings().catch(() => axios.get('/api/listings').catch(() => null)),
-          partnersAPI.getAll().catch(() => axios.get('/api/partner-applications').catch(() => null)),
-          leadsAPI.getAll().catch(() => null),
-        ])
-        if (!active) return
-        if (listRes?.data?.listings?.length) {
-          setListings(listRes.data.listings)
-        }
-        if (partRes?.data?.applications?.length) {
-          const mapped = partRes.data.applications.map(a => ({
-            id: a._id || a.id || a.referenceId,
-            name: a.name,
-            role: a.partnerType || a.role || 'Partner',
-            location: a.location || a.targetRegions || a.locations || 'Maharashtra',
-            contact: a.phone || a.email,
-            docStatus: a.docStatus || 'Submitted',
-            status: a.status || 'Pending Review',
-          }))
-          setPartners(mapped)
-        }
-        if (leadRes?.data?.data?.length) {
-          const mappedLeads = leadRes.data.data.map(l => ({
-            id: l._id || l.referenceId || l.id,
-            name: l.name,
-            phone: l.phone,
-            property: l.propertyTitle || `${l.location} (${l.area || ''} ${l.areaUnit || ''})`,
-            type: l.propertyType,
-            date: new Date(l.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-            status: l.status || 'New',
-          }))
-          setLeads(mappedLeads)
-        }
-      } catch {
-        // ignore
-      }
+    const init = async () => {
+      await fetchData()
     }
-    load()
-    return () => { active = false }
-  }, [])
+    init()
+  }, [fetchData])
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await fetchData()
+    setRefreshing(false)
+    toast.success('Admin console synced with live database!')
+  }
 
   const updateLeadStatus = async (id, newStatus) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l))
@@ -106,6 +115,8 @@ export default function AdminDashboard() {
     toast.success(`Listing marked as ${newStatus}`)
   }
 
+  const scheduledVisitsCount = leads.filter(l => l.status === 'Visit Scheduled').length
+
   return (
     <div className="admin-dash">
       <div className="admin-dash__header">
@@ -122,8 +133,8 @@ export default function AdminDashboard() {
                 Operations & Lead Center
               </h1>
             </div>
-            <button className="btn btn-outline" onClick={() => toast.success('Syncing latest records...')}>
-              <RefreshCw size={15} /> Refresh Data
+            <button className="btn btn-outline" onClick={handleRefresh} disabled={refreshing}>
+              <RefreshCw size={15} className={refreshing ? 'rotate-180' : ''} /> {refreshing ? 'Syncing...' : 'Refresh Data'}
             </button>
           </div>
 
@@ -132,28 +143,28 @@ export default function AdminDashboard() {
             <div className="admin-dash__stat-card">
               <div>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ACTIVE ENQUIRIES</p>
-                <div className="admin-dash__stat-val">24</div>
+                <div className="admin-dash__stat-val">{leads.length}</div>
               </div>
               <Inbox size={28} color="var(--gold-primary)" />
             </div>
             <div className="admin-dash__stat-card">
               <div>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>PARTNER APPS</p>
-                <div className="admin-dash__stat-val">12</div>
+                <div className="admin-dash__stat-val">{partners.length}</div>
               </div>
               <Users size={28} color="var(--gold-primary)" />
             </div>
             <div className="admin-dash__stat-card">
               <div>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ACTIVE LISTINGS</p>
-                <div className="admin-dash__stat-val">18</div>
+                <div className="admin-dash__stat-val">{listings.length}</div>
               </div>
               <Map size={28} color="var(--gold-primary)" />
             </div>
             <div className="admin-dash__stat-card">
               <div>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>SCHEDULED VISITS</p>
-                <div className="admin-dash__stat-val">8</div>
+                <div className="admin-dash__stat-val">{scheduledVisitsCount}</div>
               </div>
               <CheckCircle2 size={28} color="var(--success)" />
             </div>

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Send, CheckCircle, AlertCircle } from 'lucide-react'
-import axios from 'axios'
+import { leadsAPI } from '../../services/api'
 import './LeadForm.css'
 
 const propertyTypes = [
@@ -56,7 +56,7 @@ export default function LeadForm() {
     setStatus('loading')
     try {
       // Submit to backend API; gracefully handles offline
-      const res = await axios.post('/api/leads', form)
+      const res = await leadsAPI.submit(form)
       setRefId(res.data?.referenceId || 'PH-' + Date.now())
       setStatus('success')
       setForm(initialForm)

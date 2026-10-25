@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { 
   UploadCloud, X, ArrowRight, ShieldCheck, CheckCircle2, Sparkles 
 } from 'lucide-react'
-import axios from 'axios'
+import apiClient from '../services/api'
 import toast from 'react-hot-toast'
 import SuccessModal from '../components/ui/SuccessModal'
 import './ListLand.css'
@@ -193,7 +193,7 @@ export default function ListLand() {
         photoAttached: Boolean(photoPreview),
       }
 
-      const res = await axios.post('/api/listings', payload)
+      const res = await apiClient.post('/listings', payload)
       const newRefId = res.data?.referenceId || 'PH-LIST-' + Date.now().toString().slice(-6)
       setReferenceId(newRefId)
       setShowSuccess(true)

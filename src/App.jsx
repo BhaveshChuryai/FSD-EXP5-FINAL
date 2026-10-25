@@ -20,6 +20,8 @@ const Dashboard       = lazy(() => import('./pages/Dashboard'))
 const AdminDashboard  = lazy(() => import('./pages/AdminDashboard'))
 const ListLand        = lazy(() => import('./pages/ListLand'))
 const NotFound        = lazy(() => import('./pages/NotFound'))
+const PrivacyPolicy   = lazy(() => import('./pages/PrivacyPolicy'))
+const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'))
 
 export default function App() {
   const dispatch = useDispatch()
@@ -62,6 +64,8 @@ export default function App() {
                 </AdminRoute>
               }
             />
+            <Route path="/privacy"            element={<PrivacyPolicy />} />
+            <Route path="/terms"              element={<TermsAndConditions />} />
             <Route path="*"                 element={<NotFound />} />
           </Routes>
         </Suspense>

@@ -136,7 +136,7 @@ export default function ExploreLand() {
   const [showFilters, setShowFilters] = useState(false)
   const [properties, setProperties] = useState(DEMO_PROPERTIES)
   const [isLiveDB, setIsLiveDB] = useState(false)
-  const [_loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -459,7 +459,14 @@ export default function ExploreLand() {
         </div>
 
         {/* Grid or Empty */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="explore__empty">
+            <div className="page-loader__ring" style={{ width: 48, height: 48, margin: '0 auto 1rem' }}>
+              <div className="page-loader__inner" />
+            </div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Loading live inventory...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="explore__empty">
             <div className="explore__empty-icon">
               <Search size={32} />
@@ -472,7 +479,7 @@ export default function ExploreLand() {
           </div>
         ) : (
           <div className="explore__grid">
-            <AnimatePresence>
+            <AnimatePresence mode="popLayout">
               {filtered.map((prop, i) => {
                 const isSaved = savedIds.includes(prop.id)
                 return (

@@ -9,7 +9,7 @@ export default function LiveInvestorChat({ className = '' }) {
   const [messages, setMessages] = useState([])
   const [inputText, setInputText] = useState('')
   const [guestName, setGuestName] = useState('')
-  const [isConnected, setIsConnected] = useState(false)
+  const [isConnected, setIsConnected] = useState(() => Boolean(getSocket().connected))
   const [activeUsersCount, setActiveUsersCount] = useState(1)
   const [typingUser, setTypingUser] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
@@ -24,13 +24,21 @@ export default function LiveInvestorChat({ className = '' }) {
     ? user.role
     : 'Visitor'
 
+  const senderNameRef = useRef(senderName)
+  const senderRoleRef = useRef(senderRole)
+
+  useEffect(() => {
+    senderNameRef.current = senderName
+    senderRoleRef.current = senderRole
+  }, [senderName, senderRole])
+
   useEffect(() => {
     const socket = getSocket()
 
     function onConnect() {
       setIsConnected(true)
       setErrorMsg('')
-      socket.emit('join_chat', { name: senderName, role: senderRole })
+      socket.emit('join_chat', { name: senderNameRef.current, role: senderRoleRef.current })
     }
 
     function onDisconnect() {
@@ -57,7 +65,7 @@ export default function LiveInvestorChat({ className = '' }) {
     }
 
     function onUserTyping(data) {
-      if (data?.sender && data.sender !== senderName) {
+      if (data?.sender && data.sender !== senderNameRef.current) {
         setTypingUser(data.sender)
         clearTimeout(typingTimeoutRef.current)
         typingTimeoutRef.current = setTimeout(() => {
@@ -86,8 +94,7 @@ export default function LiveInvestorChat({ className = '' }) {
     socket.on('chat_error', onError)
 
     if (socket.connected) {
-      setIsConnected(true)
-      socket.emit('join_chat', { name: senderName, role: senderRole })
+      socket.emit('join_chat', { name: senderNameRef.current, role: senderRoleRef.current })
     }
 
     return () => {
@@ -100,8 +107,9 @@ export default function LiveInvestorChat({ className = '' }) {
       socket.off('user_typing', onUserTyping)
       socket.off('user_stop_typing', onUserStopTyping)
       socket.off('chat_error', onError)
+      clearTimeout(typingTimeoutRef.current)
     }
-  }, [senderName, senderRole])
+  }, [])
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -194,6 +202,12 @@ export default function LiveInvestorChat({ className = '' }) {
             placeholder="Enter your name (e.g. Rahul K.)"
             value={guestName}
             onChange={(e) => setGuestName(e.target.value)}
+            onBlur={() => {
+              const socket = getSocket()
+              if (socket.connected && guestName.trim()) {
+                socket.emit('join_chat', { name: senderName, role: senderRole })
+              }
+            }}
             maxLength={40}
           />
         </div>

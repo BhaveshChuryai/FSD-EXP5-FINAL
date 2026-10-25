@@ -103,41 +103,41 @@ export default function Community() {
               </div>
             </div>
 
-        {/* Posts */}
-        <div className="community-posts">
-          {filtered.map((post, i) => (
-            <motion.div key={post.id} className="community-post"
-              initial={{ opacity: 0, y: 24 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.08, duration: 0.5 }}
-            >
-              <div className="community-post__header">
-                <span className="badge badge-gold">{post.cat}</span>
-                {post.location !== 'General' && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-                    <MapPin size={11} /> {post.location}
-                  </span>
-                )}
-              </div>
-              <h3 className="community-post__title">{post.title}</h3>
-              <p className="community-post__preview">{post.preview}</p>
-              <div className="community-post__footer">
-                <span className="community-post__author">By {post.author}</span>
-                <div className="community-post__meta">
-                  <span><MessageCircle size={12} /> {post.replies}</span>
-                  <span><Heart size={12} /> {post.likes}</span>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+            {/* Posts */}
+            <div className="community-posts">
+              {filtered.map((post, i) => (
+                <motion.div key={post.id} className="community-post"
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: i * 0.08, duration: 0.5 }}
+                >
+                  <div className="community-post__header">
+                    <span className="badge badge-gold">{post.cat}</span>
+                    {post.location !== 'General' && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                        <MapPin size={11} /> {post.location}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="community-post__title">{post.title}</h3>
+                  <p className="community-post__preview">{post.preview}</p>
+                  <div className="community-post__footer">
+                    <span className="community-post__author">By {post.author}</span>
+                    <div className="community-post__meta">
+                      <span><MessageCircle size={12} /> {post.replies}</span>
+                      <span><Heart size={12} /> {post.likes}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
 
-        {!isAuthenticated && (
-          <div className="community-cta">
-            <p>Sign in or create an account to post, comment, and engage with discussions.</p>
-            <Link to="/register" className="btn btn-gold">Join the Community</Link>
-          </div>
-        )}
+            {!isAuthenticated && (
+              <div className="community-cta">
+                <p>Sign in or create an account to post, comment, and engage with discussions.</p>
+                <Link to="/register" className="btn btn-gold">Join the Community</Link>
+              </div>
+            )}
           </>
         )}
       </div>
