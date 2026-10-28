@@ -3,6 +3,8 @@
  * Manages WebSocket connections, message broadcast, and in-memory history.
  */
 
+import jwt from 'jsonwebtoken'
+
 const MAX_HISTORY = 50
 const MAX_MESSAGE_LENGTH = 500
 const MAX_NAME_LENGTH = 50
@@ -26,6 +28,28 @@ export function setupChatSocket(io) {
     }
 
     console.log(`🔌 [Socket.IO] Client connected: ${socket.id}`)
+
+    // Handle authenticated Admin Room joining for real-time notifications
+    socket.on('join_admin_room', (data) => {
+      const token = data?.token
+      if (!token) {
+        return socket.emit('admin_auth_error', { message: 'Authentication token required.' })
+      }
+      try {
+        const secret = process.env.JWT_SECRET || '7f2a9c6e4b1d8f03a5c7e9b2d6f1a4c8e0b3d7f9a2c5e6b1d4f8a0c3e7b9d2f6'
+        const decoded = jwt.verify(token, secret)
+        const role = (decoded.role || '').toLowerCase()
+        if (role === 'admin') {
+          socket.join('admin_room')
+          socket.emit('admin_room_joined', { success: true, message: 'Subscribed to admin notifications.' })
+          console.log(`🛡️ [Socket.IO] Admin ${decoded.email || decoded.id} joined admin_room`)
+        } else {
+          socket.emit('admin_auth_error', { message: 'Access denied: Admin role required.' })
+        }
+      } catch {
+        socket.emit('admin_auth_error', { message: 'Invalid or expired authentication token.' })
+      }
+    })
 
     // 1. Send recent history to newly connected client
     socket.emit('chat_history', recentMessages)

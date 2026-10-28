@@ -28,6 +28,19 @@ export const createLead = async (req, res, next) => {
 
     const saved = await newLead.save()
 
+    // Notify admin room via Socket.IO (only emitted after successful DB write)
+    const io = req.app.locals.io
+    if (io) {
+      io.to('admin_room').emit('admin:new_lead', {
+        referenceId: saved.referenceId,
+        name: saved.name,
+        propertyTitle: saved.propertyTitle || null,
+        location: saved.location,
+        propertyType: saved.propertyType,
+        createdAt: saved.createdAt,
+      })
+    }
+
     res.status(201).json({
       success: true,
       referenceId: saved.referenceId,

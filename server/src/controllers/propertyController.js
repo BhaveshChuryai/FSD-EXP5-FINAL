@@ -196,6 +196,21 @@ export const createProperty = async (req, res, next) => {
     const saved = await newProperty.save()
     const referenceId = `PH-LIST-${saved._id.toString().slice(-6).toUpperCase()}`
 
+    // Notify admin room via Socket.IO
+    const io = req.app.locals.io
+    if (io) {
+      io.to('admin_room').emit('admin:new_property', {
+        referenceId,
+        id: saved._id,
+        title: saved.title,
+        location: saved.location,
+        propertyType: saved.propertyType,
+        price: saved.price,
+        status: saved.status,
+        createdAt: saved.createdAt,
+      })
+    }
+
     res.status(201).json({
       success: true,
       referenceId,

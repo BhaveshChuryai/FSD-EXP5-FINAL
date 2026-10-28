@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   MapPin, ShieldCheck, CheckCircle2, 
   ArrowLeft, FileCheck,
-  Send, Sparkles, Building, Info, Share2, Heart
+  Send, Sparkles, Building, Info, Share2, Heart,
+  Maximize2, ChevronLeft, ChevronRight, X, Scale, ExternalLink
 } from 'lucide-react'
+import { useSelector, useDispatch } from 'react-redux'
 import toast from 'react-hot-toast'
 import { propertiesAPI, leadsAPI } from '../services/api'
+import { toggleSaveProperty, toggleCompareProperty } from '../store/slices/propertySlice'
 import './PropertyDetail.css'
 
 const PROPERTIES_DB = {
@@ -112,6 +115,9 @@ function createRefId() {
 
 export default function PropertyDetail() {
   const { id } = useParams()
+  const dispatch = useDispatch()
+  const { savedProperties = [], comparedProperties = [] } = useSelector(s => s.properties)
+
   const initialProp = PROPERTIES_DB[id] || {
     ...DEFAULT_PROP,
     id: id || 'demo-property',
@@ -120,15 +126,39 @@ export default function PropertyDetail() {
   const [prop, setProp] = useState(initialProp)
 
   const [activeImg, setActiveImg] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
   const [form, setForm] = useState({ name: '', phone: '', email: '', preferredDate: '', message: '' })
   const [loading, setLoading] = useState(false)
   const [refId, setRefId] = useState(null)
-  const [saved, setSaved] = useState(() => {
-    try {
-      const ids = JSON.parse(localStorage.getItem('ph_saved_props') || '[]')
-      return ids.includes(id)
-    } catch { return false }
-  })
+
+  const isSaved = savedProperties.some(p => p.id === prop.id)
+  const isCompared = comparedProperties.some(p => p.id === prop.id)
+
+  // Lightbox keyboard controls: Escape, Left, Right
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setLightboxOpen(false)
+      if (e.key === 'ArrowRight') setLightboxIndex(prev => (prev + 1) % prop.images.length)
+      if (e.key === 'ArrowLeft') setLightboxIndex(prev => (prev - 1 + prop.images.length) % prop.images.length)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [lightboxOpen, prop.images?.length])
+
+  // Explainable Similar Properties (item 15)
+  const similarProps = useMemo(() => {
+    return Object.values(PROPERTIES_DB)
+      .filter(p => p.id !== prop.id)
+      .map(p => {
+        let reason = 'Nearby in Maharashtra'
+        if (p.type === prop.type) reason = `Matching ${p.type} Parcel`
+        else if (p.location.split(',')[0] === prop.location.split(',')[0]) reason = `Raigad Growth Belt`
+        return { ...p, reason }
+      })
+      .slice(0, 3)
+  }, [prop.id, prop.type, prop.location])
 
   useEffect(() => {
     let mounted = true
@@ -161,6 +191,16 @@ export default function PropertyDetail() {
     }
     return () => { mounted = false }
   }, [id])
+
+  const handleToggleSave = () => {
+    dispatch(toggleSaveProperty(prop))
+    toast.success(isSaved ? 'Removed from saved properties' : 'Saved to your shortlist!')
+  }
+
+  const handleToggleCompare = () => {
+    dispatch(toggleCompareProperty(prop))
+    toast.success(isCompared ? 'Removed from comparison' : 'Added to parcel comparison!')
+  }
 
   const handleEnquiry = async (e) => {
     e.preventDefault()
@@ -196,20 +236,19 @@ export default function PropertyDetail() {
           </Link>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button 
-              className="btn btn-ghost" 
-              onClick={() => {
-                const next = !saved
-                setSaved(next)
-                try {
-                  const ids = JSON.parse(localStorage.getItem('ph_saved_props') || '[]')
-                  const updated = next ? [...ids, prop.id] : ids.filter(i => i !== prop.id)
-                  localStorage.setItem('ph_saved_props', JSON.stringify(updated))
-                } catch { /* ignore */ }
-                toast.success(next ? 'Saved to your shortlist!' : 'Removed from saved properties')
-              }}
-              style={{ color: saved ? 'var(--gold-primary)' : 'var(--text-secondary)' }}
+              className="btn btn-ghost"
+              onClick={handleToggleCompare}
+              style={{ color: isCompared ? 'var(--gold-primary)' : 'var(--text-secondary)' }}
+              title="Compare with other parcels"
             >
-              <Heart size={16} fill={saved ? 'currentColor' : 'none'} /> {saved ? 'Saved' : 'Save'}
+              <Scale size={16} /> {isCompared ? 'Comparing' : 'Compare'}
+            </button>
+            <button 
+              className="btn btn-ghost" 
+              onClick={handleToggleSave}
+              style={{ color: isSaved ? 'var(--gold-primary)' : 'var(--text-secondary)' }}
+            >
+              <Heart size={16} fill={isSaved ? 'currentColor' : 'none'} /> {isSaved ? 'Saved' : 'Save'}
             </button>
             <button 
               className="btn btn-ghost" 
@@ -234,13 +273,32 @@ export default function PropertyDetail() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="prop-detail__main-img-wrap">
+          <div className="prop-detail__main-img-wrap" style={{ cursor: 'pointer', position: 'relative' }} onClick={() => { setLightboxIndex(activeImg); setLightboxOpen(true); }}>
             <img 
               src={prop.images[activeImg] || prop.images[0]} 
               alt={prop.title} 
               className="prop-detail__main-img" 
             />
             <div className="prop-detail__img-overlay" />
+            <button 
+              className="btn btn-ghost"
+              style={{
+                position: 'absolute',
+                bottom: 16,
+                right: 16,
+                background: 'rgba(0,0,0,0.65)',
+                color: '#fff',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+              aria-label="View Full Screen Lightbox"
+            >
+              <Maximize2 size={14} /> Fullscreen Gallery ({prop.images?.length || 1})
+            </button>
           </div>
           <div className="prop-detail__side-imgs">
             {prop.images.map((img, i) => (
@@ -430,7 +488,230 @@ export default function PropertyDetail() {
             </div>
           </aside>
         </div>
+
+        {/* Similar Land Parcels (Explainable Recommendation Engine — Item 15) */}
+        {similarProps.length > 0 && (
+          <div style={{ marginTop: '4rem', paddingTop: '3rem', borderTop: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--gold-primary)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                  <Sparkles size={15} /> Curated Recommendations
+                </div>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 500 }}>
+                  Similar Land Parcels in Maharashtra
+                </h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                  Handpicked matching parcels based on land classification, soil profile, and regional infrastructure.
+                </p>
+              </div>
+              <Link to="/explore" className="btn btn-outline" style={{ fontSize: '0.85rem' }}>
+                View All Parcels <ExternalLink size={14} />
+              </Link>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+              {similarProps.map(sp => (
+                <div 
+                  key={sp.id}
+                  style={{
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-lg)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  <div style={{ position: 'relative', height: 160, overflow: 'hidden' }}>
+                    <img 
+                      src={sp.images?.[0] || '/assets/property-agri.jpg'} 
+                      alt={sp.title} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <span className="badge badge-gold" style={{ fontSize: '10px' }}>{sp.type}</span>
+                      <span style={{ background: 'rgba(0,0,0,0.75)', color: 'var(--gold-light)', padding: '2px 8px', borderRadius: 4, fontSize: '10px', border: '1px solid var(--gold-border)' }}>
+                        {sp.reason}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: '0.5rem', lineHeight: 1.3 }}>
+                      {sp.title}
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4, marginBottom: '0.75rem' }}>
+                      <MapPin size={13} color="var(--gold-primary)" /> {sp.location}
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{sp.area} {sp.unit}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--gold-primary)', fontSize: '1rem' }}>{sp.price}</span>
+                    </div>
+                    <Link to={`/property/${sp.id}`} className="btn btn-outline" style={{ marginTop: '1rem', justifyContent: 'center', fontSize: '0.8rem', padding: '6px 12px' }}>
+                      Inspect Parcel
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Full-Screen Lightbox Gallery Modal (Item 13) */}
+      {lightboxOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(5, 7, 10, 0.96)',
+            backdropFilter: 'blur(16px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+          }}
+          onClick={() => setLightboxOpen(false)}
+        >
+          {/* Header Controls */}
+          <div 
+            style={{
+              position: 'absolute',
+              top: 20,
+              left: 24,
+              right: 24,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              color: '#fff',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div>
+              <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--gold-primary)' }}>{prop.title}</div>
+              <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>
+                Image {lightboxIndex + 1} of {prop.images?.length || 1} • High-Resolution Land Survey
+              </div>
+            </div>
+            <button 
+              onClick={() => setLightboxOpen(false)}
+              className="btn btn-ghost"
+              style={{ color: '#fff', padding: 8 }}
+              aria-label="Close Lightbox"
+            >
+              <X size={26} />
+            </button>
+          </div>
+
+          {/* Main Lightbox Image View */}
+          <div 
+            style={{
+              position: 'relative',
+              maxWidth: '90vw',
+              maxHeight: '78vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <img 
+              src={prop.images[lightboxIndex] || prop.images[0]} 
+              alt={`${prop.title} survey view ${lightboxIndex + 1}`}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '78vh',
+                objectFit: 'contain',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
+              }}
+            />
+
+            {/* Navigation Arrows */}
+            {prop.images?.length > 1 && (
+              <>
+                <button
+                  onClick={() => setLightboxIndex(prev => (prev - 1 + prop.images.length) % prop.images.length)}
+                  aria-label="Previous Image"
+                  style={{
+                    position: 'absolute',
+                    left: -20,
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    background: 'rgba(212, 175, 55, 0.25)',
+                    border: '1px solid var(--gold-primary)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  onClick={() => setLightboxIndex(prev => (prev + 1) % prop.images.length)}
+                  aria-label="Next Image"
+                  style={{
+                    position: 'absolute',
+                    right: -20,
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    background: 'rgba(212, 175, 55, 0.25)',
+                    border: '1px solid var(--gold-primary)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Thumbnails Strip */}
+          <div 
+            style={{
+              position: 'absolute',
+              bottom: 24,
+              display: 'flex',
+              gap: 12,
+              overflowX: 'auto',
+              maxWidth: '85vw',
+              padding: '4px',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {prop.images?.map((img, idx) => (
+              <img 
+                key={idx}
+                src={img}
+                alt={`Thumbnail ${idx + 1}`}
+                onClick={() => setLightboxIndex(idx)}
+                style={{
+                  width: 60,
+                  height: 44,
+                  objectFit: 'cover',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  border: lightboxIndex === idx ? '2px solid var(--gold-primary)' : '1px solid rgba(255,255,255,0.2)',
+                  opacity: lightboxIndex === idx ? 1 : 0.6,
+                  transition: 'all 0.2s',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

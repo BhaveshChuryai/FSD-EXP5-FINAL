@@ -73,7 +73,11 @@ export default function Navbar() {
 
           {/* Desktop actions */}
           <div className="navbar__actions">
-            <button className="navbar__search" aria-label="Search">
+            <button 
+              className="navbar__search" 
+              aria-label="Search Land Parcels"
+              onClick={() => navigate('/explore')}
+            >
               <Search size={18} />
             </button>
 

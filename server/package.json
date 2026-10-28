@@ -15,7 +15,8 @@
     "test": "node --test tests/api.test.js",
     "test:exp6": "node --test tests/experiment6.test.js",
     "test:exp8": "node --test tests/experiment8.test.js",
-    "test:all": "node --test tests/api.test.js && node --test tests/experiment6.test.js && node --test tests/experiment8.test.js"
+    "test:proxy": "node --test tests/proxyAndRateLimit.test.js",
+    "test:all": "node --test tests/api.test.js && node --test tests/experiment6.test.js && node --test tests/experiment8.test.js && node --test tests/finalization.test.js && node --test tests/proxyAndRateLimit.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

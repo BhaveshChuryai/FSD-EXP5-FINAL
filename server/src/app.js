@@ -21,23 +21,50 @@ import { submissionLimiter } from './middleware/rateLimiter.js'
 
 const app = express()
 
-// 1. HTTP Security Headers with Helmet
+// 1. Trust Proxy Configuration (Crucial for Docker Compose Nginx reverse-proxy & Render Cloudflare/Envoy proxy)
+// Trusting 1 upstream proxy hop ensures express-rate-limit correctly resolves client IP
+// without throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR and avoids trusting arbitrary client-spoofed headers.
+const rawTrustProxy = process.env.TRUST_PROXY
+if (rawTrustProxy !== undefined) {
+  const parsed = Number(rawTrustProxy)
+  app.set('trust proxy', Number.isInteger(parsed) ? parsed : rawTrustProxy === 'true' ? true : rawTrustProxy === 'false' ? false : rawTrustProxy)
+} else if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1)
+} else {
+  // In development and test modes, trust 1 hop if behind reverse proxy / Vite proxy
+  app.set('trust proxy', 1)
+}
+
+// 2. HTTP Security Headers with Helmet
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }))
 
-// 2. Strict CORS Configuration
-const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173')
+// 3. Strict CORS Configuration
+const clientOriginEnv = process.env.CLIENT_ORIGIN || process.env.CLIENT_URL || 'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://localhost:80,http://127.0.0.1:80,http://localhost'
+const allowedOrigins = clientOriginEnv
   .split(',')
   .map(origin => origin.trim())
+  .filter(Boolean)
+
+const isLocalOrigin = (origin) => /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+const isVercelOrigin = (origin) => /^https:\/\/[a-z0-9-]+(\.vercel\.app|\.onrender\.com)$/.test(origin)
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow server-to-server or tools without origin (Postman/curl) in development
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow server-to-server, curl, health checks, or mobile tools without Origin header
+    if (!origin) {
       return callback(null, true)
     }
-    return callback(new Error(`CORS policy blocked access from origin: ${origin}`))
+    if (
+      allowedOrigins.includes(origin) ||
+      (process.env.NODE_ENV !== 'production' && isLocalOrigin(origin)) ||
+      (process.env.ALLOW_VERCEL_PREVIEWS === 'true' && isVercelOrigin(origin))
+    ) {
+      return callback(null, true)
+    }
+    // Controlled rejection: return false rather than throwing an exception
+    return callback(null, false)
   },
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { 
-  Users, Inbox, Map, CheckCircle2, ShieldCheck, RefreshCw
+  Users, Inbox, Map, CheckCircle2, ShieldCheck, RefreshCw, Zap
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { propertiesAPI, leadsAPI, partnersAPI } from '../services/api'
+import { getSocket } from '../services/socket'
 import './AdminDashboard.css'
 
 const INITIAL_LEADS = [
@@ -30,6 +31,7 @@ export default function AdminDashboard() {
   const [listings, setListings] = useState(INITIAL_LISTINGS)
   const [search, setSearch] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+  const [socketConnected, setSocketConnected] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -72,11 +74,110 @@ export default function AdminDashboard() {
   }, [])
 
   useEffect(() => {
-    const init = async () => {
-      await fetchData()
+    let isMounted = true
+    const load = async () => {
+      try {
+        const [listRes, partRes, leadRes] = await Promise.all([
+          propertiesAPI.getAdminListings().catch(() => null),
+          partnersAPI.getAll().catch(() => null),
+          leadsAPI.getAll().catch(() => null),
+        ])
+        if (!isMounted) return
+        if (listRes?.data?.listings?.length) setListings(listRes.data.listings)
+        if (partRes?.data?.applications?.length) {
+          setPartners(partRes.data.applications.map(a => ({
+            id: a._id || a.id || a.referenceId,
+            name: a.name,
+            role: a.partnerType || a.role || 'Partner',
+            location: a.location || a.targetRegions || a.locations || 'Maharashtra',
+            contact: a.phone || a.email,
+            docStatus: a.docStatus || 'Submitted',
+            status: a.status || 'Pending Review',
+          })))
+        }
+        if (leadRes?.data?.data?.length) {
+          setLeads(leadRes.data.data.map(l => ({
+            id: l._id || l.referenceId || l.id,
+            name: l.name,
+            phone: l.phone,
+            property: l.propertyTitle || `${l.location} (${l.area || ''} ${l.areaUnit || ''})`,
+            type: l.propertyType,
+            date: new Date(l.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            status: l.status || 'New',
+          })))
+        }
+      } catch {
+        // Fallback gracefully
+      }
     }
-    init()
-  }, [fetchData])
+    load()
+
+    // Real-Time Socket.IO Admin Room Subscription (Item 18)
+    const socket = getSocket()
+    const token = localStorage.getItem('ph_token')
+    if (token) {
+      socket.emit('join_admin_room', { token })
+    }
+
+    const onRoomJoined = () => {
+      if (isMounted) setSocketConnected(true)
+    }
+
+    const onNewLead = (leadData) => {
+      toast.success(`⚡ Real-Time: New Buyer Enquiry #${leadData.referenceId} from ${leadData.name}!`, { duration: 6000, icon: '📬' })
+      setLeads(prev => [{
+        id: leadData.referenceId || `LD-${Date.now().toString().slice(-4)}`,
+        name: leadData.name,
+        phone: leadData.phone || 'CRM Record',
+        property: leadData.propertyTitle || leadData.location || 'Maharashtra Parcel',
+        type: leadData.propertyType || 'Buyer Requirement',
+        date: 'Just Now',
+        status: 'New',
+      }, ...prev])
+    }
+
+    const onNewProperty = (propData) => {
+      toast.success(`⚡ Real-Time: New Property Listing "${propData.title}" (${propData.location})!`, { duration: 6000, icon: '🏡' })
+      setListings(prev => [{
+        id: propData.referenceId || `PH-LIST-${Date.now().toString().slice(-4)}`,
+        name: 'Landowner Submission',
+        phone: 'Pending Review',
+        title: propData.title,
+        propertyType: propData.propertyType,
+        location: propData.location,
+        area: 'Land Parcel',
+        price: propData.price,
+        status: propData.status || 'Pending Review',
+        docStatus: '7/12 Under Review',
+      }, ...prev])
+    }
+
+    const onNewPartner = (partnerData) => {
+      toast.success(`⚡ Real-Time: New Partner Application (${partnerData.partnerType}) from ${partnerData.name}!`, { duration: 6000, icon: '🤝' })
+      setPartners(prev => [{
+        id: partnerData.referenceId || `APP-${Date.now().toString().slice(-4)}`,
+        name: partnerData.name,
+        role: partnerData.partnerType,
+        location: partnerData.location,
+        contact: 'In Application Details',
+        docStatus: 'Submitted',
+        status: 'Pending Review',
+      }, ...prev])
+    }
+
+    socket.on('admin_room_joined', onRoomJoined)
+    socket.on('admin:new_lead', onNewLead)
+    socket.on('admin:new_property', onNewProperty)
+    socket.on('admin:new_partner', onNewPartner)
+
+    return () => {
+      isMounted = false
+      socket.off('admin_room_joined', onRoomJoined)
+      socket.off('admin:new_lead', onNewLead)
+      socket.off('admin:new_property', onNewProperty)
+      socket.off('admin:new_partner', onNewPartner)
+    }
+  }, [])
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -128,6 +229,11 @@ export default function AdminDashboard() {
                 <span className="badge" style={{ background: 'rgba(39, 174, 96, 0.15)', color: '#27ae60', border: '1px solid rgba(39,174,96,0.3)' }}>
                   System Active
                 </span>
+                {socketConnected && (
+                  <span className="badge" style={{ background: 'rgba(212, 175, 55, 0.15)', color: 'var(--gold-primary)', border: '1px solid var(--gold-border)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Zap size={10} /> Live WebSocket
+                  </span>
+                )}
               </div>
               <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 500 }}>
                 Operations & Lead Center
@@ -248,8 +354,16 @@ export default function AdminDashboard() {
                             borderRadius: '4px',
                             fontSize: '11px',
                             fontWeight: 600,
-                            background: lead.status === 'New' ? 'rgba(212, 175, 55, 0.15)' : lead.status === 'Closed' ? 'rgba(39, 174, 96, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                            color: lead.status === 'New' ? 'var(--gold-primary)' : lead.status === 'Closed' ? 'var(--success)' : 'var(--text-secondary)'
+                            background: lead.status === 'New' ? 'rgba(212, 175, 55, 0.15)' 
+                              : lead.status === 'Closed' ? 'rgba(39, 174, 96, 0.15)' 
+                              : lead.status === 'Qualified' ? 'rgba(52, 152, 219, 0.15)'
+                              : lead.status === 'Lost' ? 'rgba(231, 76, 60, 0.12)'
+                              : 'rgba(255, 255, 255, 0.08)',
+                            color: lead.status === 'New' ? 'var(--gold-primary)' 
+                              : lead.status === 'Closed' ? 'var(--success)' 
+                              : lead.status === 'Qualified' ? '#3498db'
+                              : lead.status === 'Lost' ? '#e74c3c'
+                              : 'var(--text-secondary)'
                           }}>
                             {lead.status}
                           </span>
@@ -263,8 +377,10 @@ export default function AdminDashboard() {
                           >
                             <option value="New">Mark New</option>
                             <option value="Contacted">Mark Contacted</option>
+                            <option value="Qualified">Mark Qualified</option>
                             <option value="Visit Scheduled">Visit Scheduled</option>
                             <option value="Closed">Mark Closed</option>
+                            <option value="Lost">Mark Lost</option>
                           </select>
                         </td>
                       </tr>

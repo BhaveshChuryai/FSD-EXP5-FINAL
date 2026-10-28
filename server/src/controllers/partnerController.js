@@ -32,6 +32,18 @@ export const createApplication = async (req, res, next) => {
 
     const saved = await newApp.save()
 
+    // Notify admin room via Socket.IO
+    const io = req.app.locals.io
+    if (io) {
+      io.to('admin_room').emit('admin:new_partner', {
+        referenceId: saved.referenceId,
+        partnerType: saved.partnerType,
+        name: saved.name,
+        location: saved.location,
+        createdAt: saved.createdAt,
+      })
+    }
+
     res.status(201).json({
       success: true,
       referenceId: saved.referenceId,

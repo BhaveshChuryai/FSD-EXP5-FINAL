@@ -2,11 +2,15 @@ import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, MapPin, Ruler, IndianRupee, Eye, MessageSquare, 
-  SlidersHorizontal, Heart, CheckCircle2, RotateCcw, Sparkles 
+  SlidersHorizontal, Heart, CheckCircle2, RotateCcw, Sparkles, Scale, X
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { useSelector, useDispatch } from 'react-redux'
 import toast from 'react-hot-toast'
 import { propertiesAPI } from '../services/api'
+import { 
+  toggleSaveProperty, toggleCompareProperty, removeFromComparison, clearComparison 
+} from '../store/slices/propertySlice'
 import './ExploreLand.css'
 
 const DEMO_PROPERTIES = [
@@ -127,16 +131,34 @@ const sortOpts = [
 ]
 
 export default function ExploreLand() {
-  const [search, setSearch] = useState('')
-  const [selectedType, setSelectedType] = useState('All')
-  const [selectedLocation, setSelectedLocation] = useState('All Locations')
-  const [selectedBudget, setSelectedBudget] = useState('all')
-  const [selectedArea, setSelectedArea] = useState('all')
-  const [sort, setSort] = useState('newest')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const dispatch = useDispatch()
+  const { savedProperties = [], comparedProperties = [] } = useSelector(s => s.properties)
+
+  // Initialize filter state from URL query parameters (URL-synchronized discovery)
+  const [search, setSearch] = useState(() => searchParams.get('search') || '')
+  const [selectedType, setSelectedType] = useState(() => searchParams.get('type') || 'All')
+  const [selectedLocation, setSelectedLocation] = useState(() => searchParams.get('location') || 'All Locations')
+  const [selectedBudget, setSelectedBudget] = useState(() => searchParams.get('budget') || 'all')
+  const [selectedArea, setSelectedArea] = useState(() => searchParams.get('area') || 'all')
+  const [sort, setSort] = useState(() => searchParams.get('sort') || 'newest')
   const [showFilters, setShowFilters] = useState(false)
   const [properties, setProperties] = useState(DEMO_PROPERTIES)
   const [isLiveDB, setIsLiveDB] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showCompareModal, setShowCompareModal] = useState(false)
+
+  // Synchronize filter selections back to URL query string
+  useEffect(() => {
+    const params = {}
+    if (search && search.trim()) params.search = search.trim()
+    if (selectedType && selectedType !== 'All') params.type = selectedType
+    if (selectedLocation && selectedLocation !== 'All Locations') params.location = selectedLocation
+    if (selectedBudget && selectedBudget !== 'all') params.budget = selectedBudget
+    if (selectedArea && selectedArea !== 'all') params.area = selectedArea
+    if (sort && sort !== 'newest') params.sort = sort
+    setSearchParams(params, { replace: true })
+  }, [search, selectedType, selectedLocation, selectedBudget, selectedArea, sort, setSearchParams])
 
   useEffect(() => {
     let mounted = true
@@ -175,32 +197,30 @@ export default function ExploreLand() {
     return () => { mounted = false }
   }, [])
   
-  // Local bookmarks state
-  const [savedIds, setSavedIds] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('ph_saved_props') || '[]')
-    } catch {
-      return []
-    }
-  })
+  const savedIds = useMemo(() => savedProperties.map(p => p.id), [savedProperties])
+  const comparedIds = useMemo(() => comparedProperties.map(p => p.id), [comparedProperties])
 
   const toggleSave = (prop) => {
-    setSavedIds(prev => {
-      let updated
-      if (prev.includes(prop.id)) {
-        updated = prev.filter(id => id !== prop.id)
-        toast('Removed from saved parcels', { icon: '🤍' })
-      } else {
-        updated = [...prev, prop.id]
-        toast.success(`Saved "${prop.title}" to shortlist!`)
-      }
-      try {
-        localStorage.setItem('ph_saved_props', JSON.stringify(updated))
-      } catch {
-        // ignore
-      }
-      return updated
-    })
+    const isCurrentlySaved = savedIds.includes(prop.id)
+    dispatch(toggleSaveProperty(prop))
+    if (isCurrentlySaved) {
+      toast('Removed from saved parcels', { icon: '🤍' })
+    } else {
+      toast.success(`Saved "${prop.title}" to shortlist!`)
+    }
+  }
+
+  const handleToggleCompare = (prop) => {
+    const isCurrentlyCompared = comparedIds.includes(prop.id)
+    if (!isCurrentlyCompared && comparedProperties.length >= 3) {
+      toast('Comparing up to 3 parcels (oldest replaced)', { icon: '⚖️' })
+    }
+    dispatch(toggleCompareProperty(prop))
+    if (isCurrentlyCompared) {
+      toast('Removed from comparison', { icon: '⚖️' })
+    } else {
+      toast.success(`Added "${prop.title}" to comparison!`)
+    }
   }
 
   const handleResetFilters = () => {
@@ -514,15 +534,29 @@ export default function ExploreLand() {
                         )}
                       </div>
 
-                      {/* Bookmark Button */}
-                      <button 
-                        className={`prop-card__save-btn ${isSaved ? 'prop-card__save-btn--active' : ''}`}
-                        onClick={() => toggleSave(prop)}
-                        aria-label={isSaved ? 'Remove from saved' : 'Save property'}
-                        title={isSaved ? 'Remove from saved' : 'Save property'}
-                      >
-                        <Heart size={16} fill={isSaved ? 'var(--gold-primary)' : 'none'} />
-                      </button>
+                      {/* Action Buttons: Compare and Bookmark */}
+                      <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 6, zIndex: 3 }}>
+                        <button 
+                          className={`prop-card__save-btn ${comparedIds.includes(prop.id) ? 'prop-card__save-btn--active' : ''}`}
+                          onClick={() => handleToggleCompare(prop)}
+                          aria-label={comparedIds.includes(prop.id) ? 'Remove from comparison' : 'Compare property'}
+                          title={comparedIds.includes(prop.id) ? 'In comparison shortlist' : 'Add to parcel comparison'}
+                          style={{
+                            background: comparedIds.includes(prop.id) ? 'var(--gold-primary)' : 'rgba(0,0,0,0.6)',
+                            color: comparedIds.includes(prop.id) ? '#000' : '#fff'
+                          }}
+                        >
+                          <Scale size={15} />
+                        </button>
+                        <button 
+                          className={`prop-card__save-btn ${isSaved ? 'prop-card__save-btn--active' : ''}`}
+                          onClick={() => toggleSave(prop)}
+                          aria-label={isSaved ? 'Remove from saved' : 'Save property'}
+                          title={isSaved ? 'Remove from saved' : 'Save property'}
+                        >
+                          <Heart size={16} fill={isSaved ? 'var(--gold-primary)' : 'none'} />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Card Body */}
@@ -582,6 +616,136 @@ export default function ExploreLand() {
                 )
               })}
             </AnimatePresence>
+          </div>
+        )}
+
+        {/* Floating Comparison Bar */}
+        {comparedProperties.length > 0 && (
+          <div style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 99,
+            background: 'rgba(15, 17, 23, 0.95)',
+            border: '1px solid var(--gold-primary)',
+            backdropFilter: 'blur(12px)',
+            borderRadius: 'var(--radius-xl)',
+            padding: '0.75rem 1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.25rem',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
+            maxWidth: '92vw',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Scale size={18} color="var(--gold-primary)" />
+              <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                Compare ({comparedProperties.length}/3)
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', maxWidth: 300 }}>
+              {comparedProperties.map(cp => (
+                <div key={cp.id} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: 6, fontSize: '0.75rem' }}>
+                  <span style={{ maxWidth: 85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cp.title}</span>
+                  <button onClick={() => dispatch(removeFromComparison(cp.id))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex' }} aria-label="Remove from comparison">
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button className="btn btn-gold" style={{ padding: '6px 14px', fontSize: '0.8rem' }} onClick={() => setShowCompareModal(true)}>
+              Compare Now
+            </button>
+            <button className="btn btn-ghost" style={{ padding: '6px 8px', fontSize: '0.75rem' }} onClick={() => dispatch(clearComparison())}>
+              Clear
+            </button>
+          </div>
+        )}
+
+        {/* Side-by-Side Comparison Modal */}
+        {showCompareModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(0,0,0,0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+          }} onClick={() => setShowCompareModal(false)}>
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-xl)',
+              width: '100%',
+              maxWidth: 960,
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '2rem',
+            }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div>
+                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 500 }}>
+                    Side-by-Side Land Comparison
+                  </h2>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                    Compare metrics, title verification, location, and infrastructure across selected Maharashtra parcels.
+                  </p>
+                </div>
+                <button onClick={() => setShowCompareModal(false)} className="btn btn-ghost" style={{ padding: 6 }} aria-label="Close modal">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(240px, 1fr))`, gap: '1.5rem' }}>
+                {comparedProperties.map(cp => (
+                  <div key={cp.id} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '1.25rem' }}>
+                    <img src={cp.image} alt={cp.title} style={{ width: '100%', height: 130, objectFit: 'cover', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }} />
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: '0.5rem' }}>{cp.title}</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem', marginTop: '1rem' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Location</span>
+                        <span style={{ fontWeight: 500 }}>{cp.location}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Property Type</span>
+                        <span className="badge badge-gold" style={{ fontSize: '10px' }}>{cp.type}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Land Area</span>
+                        <span style={{ fontWeight: 600 }}>{cp.area} {cp.unit}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Asking Price</span>
+                        <span style={{ fontWeight: 600, color: 'var(--gold-primary)', fontSize: '1.1rem' }}>{cp.price}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Documentation</span>
+                        <span>{cp.docStatus}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.75rem' }}>Infrastructure</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                          {cp.infra?.map(inf => (
+                            <span key={inf} style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: 4, fontSize: '10px' }}>
+                              {inf}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ marginTop: '1rem' }}>
+                        <Link to={`/property/${cp.id}`} className="btn btn-gold" style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem' }} onClick={() => setShowCompareModal(false)}>
+                          View Full Details
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

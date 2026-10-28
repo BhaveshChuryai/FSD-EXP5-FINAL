@@ -23,17 +23,27 @@ async function bootstrap() {
     // 3. Create HTTP server and initialize Socket.IO
     const httpServer = http.createServer(app)
 
-    const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173')
+    const clientOriginEnv = process.env.CLIENT_ORIGIN || process.env.CLIENT_URL || 'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://localhost:80,http://127.0.0.1:80,http://localhost'
+    const allowedOrigins = clientOriginEnv
       .split(',')
       .map(origin => origin.trim())
+      .filter(Boolean)
+
+    const isLocalOrigin = (origin) => /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+    const isVercelOrigin = (origin) => /^https:\/\/[a-z0-9-]+(\.vercel\.app|\.onrender\.com)$/.test(origin)
 
     const io = new SocketIOServer(httpServer, {
       cors: {
         origin: (origin, callback) => {
-          if (!origin || allowedOrigins.includes(origin)) {
+          if (
+            !origin ||
+            allowedOrigins.includes(origin) ||
+            (process.env.NODE_ENV !== 'production' && isLocalOrigin(origin)) ||
+            (process.env.ALLOW_VERCEL_PREVIEWS === 'true' && isVercelOrigin(origin))
+          ) {
             return callback(null, true)
           }
-          return callback(null, true)
+          return callback(new Error('CORS origin rejected by server policy'), false)
         },
         credentials: true,
         methods: ['GET', 'POST'],
@@ -44,6 +54,9 @@ async function bootstrap() {
 
     // Mount Socket.IO real-time community chat handlers
     setupChatSocket(io)
+
+    // Make io accessible to controllers via app.locals for admin notifications
+    app.locals.io = io
 
     // 4. Start combined HTTP & WebSocket server
     const server = httpServer.listen(PORT, '0.0.0.0', () => {
@@ -76,5 +89,17 @@ async function bootstrap() {
     process.exit(1)
   }
 }
+
+// Global safety net: prevent crashes from unhandled async rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ Unhandled Promise Rejection at:', promise, 'reason:', reason)
+  // Don't crash the server on unhandled rejections — log and continue
+})
+
+// Global safety net: catch synchronous errors that escaped try/catch
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err.message, err.stack)
+  process.exit(1)
+})
 
 bootstrap()
